@@ -1,0 +1,71 @@
+/* ------------------- ContenedorCategorias.jsx ------------------------ */
+
+/* ---------- Paginación ------------ */
+.cat-paginacion {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* ---------- Box de la categoría ------------ */
+
+.cat-box-categoria {
+    cursor: pointer;
+    transition: border-color 0.5s ease;
+}
+
+.cat-box-categoria::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.cat-box-categoria.expanded::after {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.cat-box-categoria.expanded .cat-box-categoria-text {
+    transition: border-color 0.3s;
+    padding: 0 5%;
+    border: solid ;
+}
+
+.cat-box-categoria.expanded .cat-box-categoria-text {
+    text-shadow: 2px -2px 1px black;
+}
+/* ---------- Texto del box de la categoría ------------ */
+
+.cat-box-categoria-text { 
+    position: relative;
+    transition: all 0.3s;
+}
+
+.cat-box-categoria-text:hover {
+    color: #fff;
+}
+
+.cat-box-categoria-text::after {
+    content: '';
+    height: 3px;
+    width: 100%;
+    background: rgb(255, 255, 255);
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    transform: scaleX(0);
+    transform-origin: center;
+}
+
+.cat-box-categoria-text:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+

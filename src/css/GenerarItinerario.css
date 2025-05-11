@@ -1,0 +1,75 @@
+@import "../var.css";
+
+/* ---------------------- GenerarItinerario.jsx ------------------ */
+
+/* --- Header --- */ 
+.gi-header-titulo-h1 {
+    font-size: 3rem;
+}
+
+.gi-contenido {
+    margin-top: 40px;
+}
+
+.gi-card-fechasViaje,
+.gi-card-detallesViaje,
+.gi-card-presupuesto {
+    padding: 1.5%;
+}
+
+/* --- Card --> Fechas de viaje --- */ 
+
+.gi-card-fechasViaje {
+    margin-bottom: 10px !important;
+}
+
+/* --- Card --> Detalles del viaje --- */
+
+.gi-card-detallesViaje {
+    margin-left: 20px !important;
+    margin-top: 20px !important;
+}
+
+.gi-card-detallesViaje-checkbox {
+    border-radius: 5px;
+    margin-bottom: 7px;
+}
+
+.gi-card-detallesViaje-checkbox:hover {
+    background-color: var(--color-primary);
+}
+
+.gi-card-detallesViaje-numeroViajantes {
+    margin-bottom: 20px;
+}
+
+/* --- Btn --- */
+
+.gi-btn-continuar {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-left: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+@media (max-width: 600px) {
+    .gi-card-fechasViaje {
+        margin-bottom: 7px !important;
+    }
+    
+    .gi-card-detallesViaje {
+        margin-left: 0px !important;
+    }
+
+    .gi-contenido {
+        align-items: center;
+    }
+}
+
+@media (max-width: 760px) and (min-width: 600px) {
+    .gi-card-titulo-apartados {
+        font-size: .8em !important;
+    }
+}

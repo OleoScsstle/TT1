@@ -1,0 +1,311 @@
+/* Estilos generales */
+.sidebar-container-admin-places {
+  background-color: #e8f6fc;
+  padding-top: 2rem; /* Aumenta el espacio superior */
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  transition: width 0.3s ease;
+  margin-left: -40px;
+  margin-top: -40px;
+}
+
+.second-container-admin-places {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 35px;
+  gap: 100px;
+}
+
+.list-item-button-admin-places {
+  display: flex;
+  align-items: center;
+}
+
+.ajustes-soporte-admin-places {
+  position: sticky;
+  margin-top: 15rem;
+}
+
+.navbar-container-adp {
+  width: 100%;
+}
+
+.dash-cuentas-admin-places {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-item-text-admin-places {
+  flex-grow: 1;
+  font-weight: bold;
+}
+
+.submenu-item-admin-places {
+  padding-left: 2rem;
+}
+
+.list-item-icon-admin-places {
+  min-width: 30px;
+}
+
+/* Estilos para el formulario */
+.formulario-container-admin-places {
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  padding: 4rem;
+  margin: 4rem auto;
+  transition: width 0.3s ease;
+  min-width:'800px',
+
+}
+
+.formulario-header-title-admin-places {
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #ff007f;
+}
+
+.formulario-subtitle-admin-places {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 3rem;
+}
+
+.formulario-subtitle-section-admin-places {
+  font-weight: bold;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 1rem;
+}
+
+.formulario-box-admin-places {
+  background-color: #fff;
+  padding: 3rem;
+}
+
+.formulario-grid-item-admin-places {
+  padding: 0.5rem;
+}
+
+.formulario-input-admin-places {
+  width: 100%;
+}
+
+.formulario-button-reject-admin-places {
+  color: #ff007f;
+  border-color: #ff007f;
+}
+
+.formulario-button-accept-admin-places {
+  background-color: #e8f6fc;
+  color: #fff;
+}
+
+.formulario-button-accept-admin-places:hover {
+  background-color: #005f85;
+}
+
+.formulario-button-reject-admin-places:hover {
+  background-color: #ffeef6;
+  border-color: #ff007f;
+}
+
+/* Estilos para la sección Recibidos */
+.recibidos-container-admin-places {
+  overflow: hidden;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-top: 30px;
+}
+
+
+.recibidos-header-admin-places {
+  background-color: #e4f7ff;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.recibidos-header-title-admin-places {
+  color: black;
+  text-align: center;
+  font-size: 3.5rem;
+}
+
+
+
+.recibidos-filter-buttons-admin-places {
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.recibidos-filter-button-admin-places {
+  margin: 5px;
+  background-color: #e4007c;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  font-size: 1rem;
+}
+
+.recibidos-filter-button-active-admin-places {
+  border: 2px solid #fff;
+}
+
+.recibidos-filter-button-admin-places:hover {
+  background-color: #d1006f;
+}
+
+/* Estilos para el contenedor de controles */
+.controls-container-admin-places {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.controls-container-admin-places .MuiTextField-root {
+  max-width: 250px;
+}
+
+.controls-container-admin-places .MuiInputAdornment-root {
+  color: #e4007c;
+}
+
+/* Clase para personalizar la scrollbar */
+.us_de-deseados-text {
+  max-height: 500px; /* Límite de altura */
+  overflow-y: auto; /* Scroll vertical */
+}
+
+/* Personalización de la scrollbar para navegadores WebKit */
+.us_de-deseados-text::-webkit-scrollbar {
+  width: 8px; /* Ancho de la scrollbar */
+}
+
+.us_de-deseados-text::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Fondo del track */
+}
+
+.us_de-deseados-text::-webkit-scrollbar-thumb {
+  background: #888; /* Color del pulgar */
+  border-radius: 4px; /* Bordes redondeados */
+}
+
+.us_de-deseados-text::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color más oscuro al pasar el mouse */
+}
+
+.contenedor-cajas-admin-places{
+  display: flex;
+  flex-direction: row; /* Los elementos están en fila por defecto */
+  gap: 30px;
+}
+
+/* Compatibilidad con Firefox */
+.us_de-deseados-text {
+  scrollbar-width: thin; /* Scroll delgado */
+  scrollbar-color: #888 #f1f1f1; /* Pulgar y fondo del track */
+}
+
+
+/* Media queries para diferentes tamaños de pantalla */
+
+/* Pantallas muy pequeñas (hasta 480px) */
+@media (max-width: 480px) {
+  .contenedor-cajas-admin-places {
+    scale: 100%;
+    flex-direction: column; 
+    gap: 10px; 
+    justify-content: center; 
+  }
+
+  .contenedor-cajas-admin-places .caja {
+    min-width: 100%; /* Las cajas ocupan todo el ancho disponible */
+    max-width: 100%; /* Elimina el límite máximo de ancho */
+  }
+
+  .formulario-container-admin-places {
+    width: 100%;
+    padding: 2rem;
+  }
+
+  .second-container-admin-places {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+  }
+}
+
+/* Pantallas pequeñas (hasta 768px) */
+@media (max-width: 1024px) {
+  .formulario-container-admin-places {
+    width: 95%;
+    padding: 3rem;
+  }
+
+  .second-container-admin-places {
+    flex-direction: column;
+    gap: 20px;
+    
+  }
+
+  .recibidos-header-title-admin-places {
+    font-size: 2.5rem;
+
+  }
+
+  .controls-container-admin-places {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+
+/* Pantallas grandes (más de 1024px) */
+@media (min-width: 1025px) {
+  .formulario-container-admin-places {
+    width: 60%;
+    padding: 4rem;
+    
+  }
+  
+
+  .recibidos-header-title-admin-places {
+    font-size: 4rem;
+  }
+}
+
+/* A partir de 857px */
+@media (max-width: 857px) {
+  .second-container-admin-places {
+    flex-direction: column; /* Cambia a disposición en columna */
+    gap: 20px;
+  }
+
+  .recibidos-container-admin-places {
+    order: -1; /* Hace que Recibidos aparezca primero */
+  }
+
+  .contenedor-cajas-admin-places {
+    scale: 100%;
+    flex-direction: column; 
+    gap: 10px; 
+    justify-content: center; 
+  }
+
+  .contenedor-cajas-admin-places .caja {
+    min-width: 100%; /* Las cajas ocupan todo el ancho disponible */
+    max-width: 100%; /* Elimina el límite máximo de ancho */
+  }
+}
