@@ -13,7 +13,7 @@
     position: relative;
     height: 100vh;
     width: 100%;
-    background-image: linear-gradient(to left, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)), url('../img/HomePage/home-bg.jpg');
+    background-image: linear-gradient(to left, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)), url('../img/HomePage/oncology.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -458,15 +458,15 @@ h2 {
 
 
 
-/*PREGUNTA DEL REGISTRO*/
+/*PREGUNTA DEL REGISTRO*/ /*AQUI ES DONDE SE CAMBIA EL COLOR DE LA IMAGEN*/
 .pr-0 {
-    background-color: var(--color-primary);
+    background-color: var(--color-tertiary);
     padding: 20px 0;
 }
 
 
 .pr-1 {
-    background-color: var(--color-primary);
+    background-color: var(--color-tertiary);
     border-radius: '5px'
 }
 

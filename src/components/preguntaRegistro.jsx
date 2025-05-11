@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import angelImage from '../img/HomePage/angel.jpeg';
+import screening from '../img/HomePage/Ilustration.webp';
 import '../css/HomePage.css';
 
 
@@ -20,11 +21,11 @@ function PreguntaRegistro() {
                                     {isLoggedIn ? (
                                         <>
                                             <p>
-                                                ¡Disfruta de todas las funcionalidades de nuestra app y lleva la organización de tus viajes al siguiente nivel! Con nuestra app, puedes crear itinerarios personalizados y recibir recomendaciones basadas en tus intereses!
+                                                ¡Descubre las funcionalidades de nuestro sistema y realiza los análisis que ayuden a más gente! Con nuestro sistema, puedes tener una base solida para el diagnostico de cada paciente!
                                             </p>
 
                                             <p>
-                                                Aprovecha todas las herramientas que hemos desarrollado para que planear tu viaje sea tan emocionante como vivirlo. ¡Explora, organiza y disfruta al máximo cada momento de tu aventura!
+                                                Aprovecha todas las herramientas que hemos desarrollado para ayudar a especialistas a tener un mejor panorama sobre la situación de cada paciente.
                                             </p>
                                         </>
                                     ) : (
@@ -43,7 +44,7 @@ function PreguntaRegistro() {
                             </div>
                             <div className="col-12 col-md-5 d-flex align-items-center justify-content-center">
                                 <img
-                                    src={angelImage}
+                                    src={screening}
                                     alt="Ángel de la independencia"
                                     className="img-fluid pr-img"
                                 />

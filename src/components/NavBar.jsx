@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import '../css/NavBar.css';
-import logo from '../img/logo-provicional.png';
+import logo from '../img/dashboard.png';
 import avatar from '../img/userFoto.jpg';
 
 // componentes locales
@@ -52,17 +52,18 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
           {/* Enlaces del menú */}
           <div className="collapse navbar-collapse" id="navbarContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {/*
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Lugares</Link>
               </li>
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Gastronomía</Link>
+              </li>*/}
+              <li className="nav-item">
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Análsis</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Museos</Link>
-              </li>
-              <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/generar-itinerario">Generar itinerario</Link>
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Sobre nosotros</Link>
               </li>
             </ul>
             {/* Sección de perfil de usuario */}

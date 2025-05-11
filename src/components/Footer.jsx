@@ -8,16 +8,16 @@ function Footer({ showIncorporaLugar }) {
         <section>
           <div className='row'>
             <div className='col-md-3 col-lg-3 col-xl-3 mx-auto mt-3'>
-              <h6>Itinerarios Canasta Básica</h6>
+              <h6>Aqui va ir el nombre del sistema</h6>
               <p>
-                Descubre y organiza tus experiencias en la Ciudad de México, desde lugares icónicos hasta rincones menos conocidos.
+                Realiza los análisis de una forma más rápida y sencilla que ayuden a más pacientes.
               </p>
             </div>
 
             <hr className='w-100 clearfix d-md-none' />
 
             <div className='col-md-2 col-lg-2 col-xl-2 mx-auto mt-3 explore-links'>
-              <h6>Canasta Básica</h6>
+              <h6>Nombre del sistema</h6>
                             
               {/* Mostrar el enlace de incorporar lugar si showIncorporaLugar es verdadero */}
               {showIncorporaLugar && (
@@ -33,7 +33,7 @@ function Footer({ showIncorporaLugar }) {
             <div className='col-md-4 col-lg-3 col-xl-3 mx-auto mt-3 contact-info'>
               <h6>Contacto</h6>
               <p><i className='bi bi-house-fill'></i> Ciudad de México, México</p>
-              <p><i className='bi bi-envelope-fill'></i> contacto@canastabasica.com</p>
+              <p><i className='bi bi-envelope-fill'></i> contacto@sistemadeapoyo.com</p>
               <p><i className='bi bi-telephone-fill'></i> +52 55 5555 5555</p>
             </div>
 
@@ -63,7 +63,7 @@ function Footer({ showIncorporaLugar }) {
       </div>
 
       <div className='copyright'>
-        © {new Date().getFullYear()} Itinerarios CDMX
+        © {new Date().getFullYear()} CDMX
       </div>
     </footer>
   );

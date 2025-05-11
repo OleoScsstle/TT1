@@ -77,8 +77,8 @@ const HomePage = () => {
 
       <section className='home'>
         <div className='home-text'>
-          <h5 className='home-h5'>Planea tu próximo <strong>viaje</strong> con nosotros a la</h5>
-          <h1 className='home-h1'>Ciudad de México</h1>
+          <h5 className='home-h5'>Realiza el próximo<strong> análisis </strong> con nuestro apoyo y con la </h5>
+          <h1 className='home-h1'>Nueva herramienta</h1>
           <ButtonsMod
             variant='principal'
             textCont='Comienza ahora'
@@ -87,6 +87,7 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/*
       <section className='cardAlcaldias'>
         <h2 className='home-h2'>Conoce las alcaldías de la CDMX</h2>
         <p className='home-p'>Infinitas posibilidades x 16 alcaldías</p>
@@ -104,7 +105,7 @@ const HomePage = () => {
           </Slider>
         </div>
 
-        {/* Agregar boton de ver mas que redirige a ver todas las alcaldias*/}
+        
         <div className='alc-vermas'>
           <ButtonsMod
             variant='principal'
@@ -113,11 +114,7 @@ const HomePage = () => {
           />
         </div>
       </section>
-
-
-
-
-      {/* SECCIÓN DE CESAR - EXPLORAR CATEGORÍAS*/}
+      
       <br></br>
       <section>
         <div className='home-text'>
@@ -132,14 +129,14 @@ const HomePage = () => {
         <CatHome />
       </section>
 
-      {/* SECCIÓN DE CESAR - EXPLORAR LUGARES CERCANOS */}
+
 
       <section>
         <div className='mapa'>
           <h2>¡Sorpréndete con lo que te rodea!</h2>
           <Mapa />
         </div>
-      </section>
+      </section>*/}
 
       <br></br>
 
