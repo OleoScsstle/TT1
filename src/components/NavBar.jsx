@@ -55,10 +55,10 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
               {/*
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Lugares</Link>
-              </li>
-              <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Gastronomía</Link>
               </li>*/}
+              <li className="nav-item">
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Inicio</Link>
+              </li>
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Análsis</Link>
               </li>
@@ -97,6 +97,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         {/* Opciones del menú */}
+                        {/*
                         <li><Link className="dropdown-item" to='/perfil-page'>Mi Perfil</Link></li>
                         <li><Link className="dropdown-item" to="/settings">Configuración</Link></li>
                         <li><Link className='dropdown-item' to='/Categorias-page'>Categorías</Link></li>
@@ -106,7 +107,6 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                         <li><Link className='dropdown-item' to='/HistoryPage'>Historial de búsqueda</Link></li>
                         <li><Link className='dropdown-item' to='/resume-page'>Página de resumen</Link></li>
                         <li><Link className='dropdown-item' to='/itinerary'>Página de itinerario</Link></li>
-                        <li><Link className='dropdown-item' to='/register-place-page'>Página de alta de lugares</Link></li>
                         <li><Link className='dropdown-item' to='/Admin-Page-Places'>Página de solicitud de administrador</Link></li>
                         <li><Link className='dropdown-item' to='/Admin-Page'>Página de administrador</Link></li>
                         <li><Link className='dropdown-item' to='/Admin-dashboard'>Dashboard de administrador</Link></li>
@@ -114,7 +114,11 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                         <li><Link className='dropdown-item' to='/favoritos'>Favoritos User</Link></li>
                         <li><Link className='dropdown-item' to='/recuperar-contrasena'>Recuperar Contraseña</Link></li>
                         <li><Link className='dropdown-item' to='/ingresar-nueva-contrasena'>Ingresar Nueva Contraseña</Link></li>
-                        <li><Link className='dropdown-item' to='/all-places'>Todos los lugares</Link></li>
+                        <li><Link className='dropdown-item' to='/all-places'>Todos los lugares</Link></li>*/}
+                        <li><Link className='dropdown-item' to='/image-analysis'>Análisis de imagenes</Link></li>
+                        <li><Link className='dropdown-item' to='/'>Inicio</Link></li>
+                        <li><Link className='dropdown-item' to='/register'>Registro</Link></li>
+                        <li><Link className='dropdown-item' to='/login'>Inicio de sesión</Link></li>
                         <li><hr className="dropdown-divider" /></li>
                         <li><Link className="dropdown-item" to="/logout">Cerrar Sesión</Link></li>
                       </ul>

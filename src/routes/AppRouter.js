@@ -46,7 +46,7 @@ function AppRouter() {
         <Route path='/placepage' element={<PlacePage />} />
         <Route path='/generar-itinerario' element={<GenerarItinerario />} />
         <Route path='/resume-page' element={<ResumePage />}/>
-        <Route path='/register-place-page' element={<RegisterPlacePage />}/>
+        <Route path='/image-analysis' element={<RegisterPlacePage />}/>
         <Route path='/Admin-Page' element={<AdminPage />}/>
         <Route path='/Admin-Page-Places' element={<AdminPagePlaces />}/>
         <Route path='/perfil-page' element={<Perfil />}/>

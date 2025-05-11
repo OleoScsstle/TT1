@@ -10,7 +10,7 @@ import FacebookRoundedIcon from '@mui/icons-material/FacebookRounded';
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import LeftImage from '../components/register/LeftImageR';
-import imgRegister from '../img/registerIMGA.jpg';
+import imgRegister from '../img/HomePage/ilustracion-mamografia.avif';
 
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
 import '../css/RegisterPage.css';
@@ -163,7 +163,7 @@ function RegisterPage() {
               <Grid size={{ xs: 12, md: 6 }} className='register-left-container'>
                 <LeftImage
                   imageUrl={imgRegister}              
-                  nombreFotografo="Daniel Zepeda"/>
+                  nombreFotografo=""/>
               </Grid>
 
               {/* Form Section */}

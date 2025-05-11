@@ -24,7 +24,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const handlePlacePageClick = () => {
-    navigate('/generar-itinerario');
+    navigate('/login');
   };
 
   const handlePlaceAlcaldiasClick = () => {

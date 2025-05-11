@@ -22,7 +22,7 @@ import '../css/LoginPage.css';
 // elementos de la página
 import imgTeotihuacan from '../img/piramides-teotihuacan.webp';
 import fuenteTlaloc from '../img/PlacePage/place-img-fuentetlaloc.jpg';
-import casaLeon from '../img/PlacePage/place-img-casadeleon.jpg';
+import casaLeon from '../img/HomePage/ilustracion-mamografia.avif';
 
 function LoginPage() {
   // validacion de correo

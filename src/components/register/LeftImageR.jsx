@@ -16,10 +16,10 @@ function LeftImage({ imageUrl, nombreFotografo }) {
       <Box className='mx-5'>
         <Box className='pt-5'></Box>
         <Typography variant='h3' className='fw-semibold text-light pt-5'>
-          Bienvenido a la aventura que cambiará tu historia
+          Bienvenido a la nueva herramienta de análisis
         </Typography>
         <Typography variant='body1' className='text-light mt-3 pb-5'>
-          Únete a una comunidad vibrante donde florece la creatividad, se forjan conexiones y cada paso te acerca a experiencias inolvidables. Sumérgete y encuentra la inspiración.
+        Únete a una comunidad donde puedes ayudar a más personas y donde cada paso ayuda a poder salvar vidas.
         </Typography>
 
         <Box className='mb-5' sx={{ marginTop: '400px' }}>
