@@ -60,7 +60,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Inicio</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Análsis</Link>
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="image-analysis">Análisis</Link>
               </li>
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Sobre nosotros</Link>

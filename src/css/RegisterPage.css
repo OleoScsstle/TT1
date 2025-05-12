@@ -1,6 +1,6 @@
 /* Fondo de la página */
 .register-background {
-   background-image: linear-gradient(to left, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)), url('../img/HomePage/home-bg.jpg');
+   background-image: linear-gradient(to left, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3)), url('../img/HomePage/oncology.jpg');
    background-size: cover;
    background-position: center;
    width: 100%;
