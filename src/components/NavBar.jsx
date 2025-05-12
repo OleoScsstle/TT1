@@ -119,6 +119,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                         <li><Link className='dropdown-item' to='/'>Inicio</Link></li>
                         <li><Link className='dropdown-item' to='/register'>Registro</Link></li>
                         <li><Link className='dropdown-item' to='/login'>Inicio de sesión</Link></li>
+                        <li><Link className='dropdown-item' to='/Comenzar-Analisis'>Comenzar Análisis</Link></li>
                         <li><hr className="dropdown-divider" /></li>
                         <li><Link className="dropdown-item" to="/logout">Cerrar Sesión</Link></li>
                       </ul>
