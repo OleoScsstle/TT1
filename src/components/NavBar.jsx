@@ -120,6 +120,10 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                         <li><Link className='dropdown-item' to='/register'>Registro</Link></li>
                         <li><Link className='dropdown-item' to='/login'>Inicio de sesión</Link></li>
                         <li><Link className='dropdown-item' to='/Comenzar-Analisis'>Comenzar Análisis</Link></li>
+                        
+                        <li><Link className='dropdown-item' to='/itinerariesSaved'>Buscar paciente</Link></li>
+
+                        <li><Link className='dropdown-item' to='/Main-Loggin'>Login principal</Link></li>
                         <li><hr className="dropdown-divider" /></li>
                         <li><Link className="dropdown-item" to="/logout">Cerrar Sesión</Link></li>
                       </ul>
@@ -142,7 +146,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/deseados'>Deseados User</Link>
                     </li>
                     <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerariesSaved'>Itinerarios guardados</Link>
+                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerariesSaved'>Buscar uusarios</Link>
                     </li>
                     <li className="nav-item">
                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/HistoryPage'>Historial de búsqueda</Link>

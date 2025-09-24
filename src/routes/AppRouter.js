@@ -26,6 +26,7 @@ import AllPlacesPage from '../pages/AllPlacesPage';
 import PreferenciasModal from '../components/preferencias/PreferenciasModal';
 import AdminSavedPlaces from '../pages/AdminSavedPlaces';
 import ComenzarAnalisisPages from '../pages/comenzarAnalisisPage';
+import MainPageLoggin from '../pages/Main-Loggin';  
 
 
 function AppRouter() {
@@ -59,6 +60,7 @@ function AppRouter() {
         <Route path = '/preferencias' element={<PreferenciasModal/>} />
         <Route path='/Admin-SavedPlaces' element={<AdminSavedPlaces/>}/>
         <Route path='/Comenzar-Analisis' element={<ComenzarAnalisisPages/>}/>
+        <Route path='/Main-Loggin' element={<MainPageLoggin/>}/>
       </Routes>
     </Router>
   );
