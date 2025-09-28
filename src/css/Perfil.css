@@ -1,107 +1,49 @@
-.perfil-usuario-background {
-    position: absolute;
-    /* background: linear-gradient(45deg, #BC3CFF, #317FFF); */
-    /*background-color: #E4007C;*/
-    background-image: url('../img/HomePage/places/home-places-alvaro-obregon.jpg');
-    background-position: center;
-    background-size: cover;
-    height: 10rem;
-    width: 100%;
+/* Layout para que el footer se pegue abajo */
+.layout-page { min-height: 100vh; display: flex; flex-direction: column; }
+.layout-main { flex:1 0 auto; padding-bottom: 80px; }
+
+/* Cover del perfil */
+.perfil-usuario-background{
+  height: 250px;
+  width: 100%;
+  background-image: url('/src/img/HomePage/oncology.jpg'); /* pon tu imagen */
+  background-size: cover;
+  background-position: center;
 }
 
-.perfil-usuario-background::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); 
-    z-index: 1;
-}
-
-.perfil-usuario-header {
-    position: relative;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    z-index: 2 !important;
-    margin-top: 6rem;
-}
-
-.perfil-usuario-header-username {
-    color: white;
+/* Tarjeta del header */
+.perfil-usuario-header{
+  margin-top: -60px; /* solapa la tarjeta sobre el cover */
+  padding: 24px;
+  border-radius: 16px;
 }
 
 .perfil-usuario-header-informacion {
-    margin-left: 50px;
+  margin-left: 32px; /* o el valor que prefieras */
 }
 
-.perfil-usuario-header-icon {
-    color: #E4007C !important;
-    font-size: 2.5rem !important;
-    opacity: 0.5;
+/* Nombre grande como en el mock */
+.perfil-usuario-header-username{
+  font-weight: 800;
+  letter-spacing: .5px;
 }
 
-.perfil-btn-categorias-interes {
-    background-color: #FFFF !important;
-    color: #E4007C !important;
-    text-transform: inherit !important;
-    border: 1px solid #E4007C !important;
-    border-radius: 15px !important;
+/* Listado de métricas */
+.perfil-usuario-informacion-listado{
+  gap: 50px; /* separa los bloques */
+}
+.perfil-usuario-listado .perfil-usuario-header-span{
+  font-size: .95rem;
+  color: #6b7280;
 }
 
-.perfil-usuario-listado {
-    margin-right: 50px;
+/* Iconos con acento rosa */
+.perfil-usuario-header-icon{
+  margin-right: 8px;
+  color: #E4007C;
 }
 
-.perfil-informacion-personal-items {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    width: 100% !important;
-}
-
-.perfil-usuario-card-informacion-personal {
-    margin-top: 90px;
-}
-
-.perfil-usuario-header-font {
-    font-size: 1.9rem !important;
-}
-
-.perfil-informacion-personal-tp {
-    width: 80%;
-}
-
-@media (max-width: 600px) {
-    .perfil-usuario-header-username {
-        color: black;
-        font-size: 2rem !important;
-        text-align: center;
-    }
-    .perfil-usuario-header-informacion {
-        margin: 0 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    .perfil-usuario-listado {
-        margin: 10px;
-    }
-    .perfil-usuario-header-span {
-        font-size: 10px;
-    }
-    .perfil-usuario-header-font,
-    .perfil-usuario-header-icon {
-        font-size: 1.7rem !important;
-    }
-    .perfil-usuario-card-informacion-personal {
-        margin-top: 30px;
-    }
-}
-
-@media (max-width: 900px) {
-    .perfil-informacion-personal-tp {
-        width: 100%;
-    }
+/* Para valores */
+.perfil-usuario-header-font{
+  font-weight: 700;
 }
