@@ -1,23 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Ignorar dependencias de Python (Backend)
+backend/venv/
+backend/__pycache__/
+backend/db.sqlite3
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Ignorar dependencias de Node (Frontend)
+frontend/node_modules/
+frontend/build/
 
-# testing
-/coverage
-
-# production
-/build
-
-# misc
+# Archivos de sistema
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
