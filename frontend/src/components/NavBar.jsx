@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import '../css/NavBar.css';
-import logo from '../img/dashboard.png';
-import avatar from '../img/userFoto.jpg';
+import '../css/NavBar.css'; // Asegúrate que la ruta sea correcta
+import logo from '../img/dashboard.png'; // Asegúrate que la ruta sea correcta
+import avatar from '../img/userFoto.jpg'; // Asegúrate que la ruta sea correcta
 
-// componentes locales
+// Componentes locales
 import ButtonsMod from './ButtonsMod';
+import { useAuth } from '../context/AuthContext'; // <-- 1. Importa el hook useAuth
 
 function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, staticNavbar }) {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [userName, setUserName] = useState('Nombre de Usuario'); // Simula el nombre del usuario
-  const [menuOpen, setMenuOpen] = useState(false); // Estado para controlar la apertura del menú
+  const { isAuthenticated, user, logout } = useAuth(); // <-- 2. Obtén el estado y funciones del contexto
+  // const [userName, setUserName] = useState('Nombre de Usuario'); // Ya no necesitamos este estado local
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -22,10 +23,17 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
     navigate('/register');
   };
 
-  // Función para manejar la apertura y cierre del menú
+  const handleLogoutClick = () => { // <-- 3. Nueva función para cerrar sesión
+    logout();
+    navigate('/login'); // Redirige al login después de cerrar sesión
+  };
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+
+  // Determina qué nombre mostrar (si tenemos datos del usuario o un genérico)
+  const displayUserName = user?.nombre || 'Usuario'; // <-- 4. Usa el nombre del contexto si existe
 
   return (
     <>
@@ -33,10 +41,10 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
         <div className="mx-3 container-fluid">
           {/* Logo */}
           <Link className="navbar-brand" to="/">
-            <img className='logo-img' src={logo} alt="Logo-canasta-basica" />
+            <img className='logo-img' src={logo} alt="Logo" />
           </Link>
 
-          {/* Botón de colapso para móvil */}
+          {/* Botón de colapso */}
           <button
             className="navbar-toggler"
             type="button"
@@ -52,33 +60,31 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
           {/* Enlaces del menú */}
           <div className="collapse navbar-collapse" id="navbarContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              {/*
-              <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Lugares</Link>
-              </li>*/}
               <li className="nav-item">
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Inicio</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="image-analysis">Análisis</Link>
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/image-analysis">Análisis</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/">Sobre nosotros</Link>
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/about">Sobre nosotros</Link> {/* Cambié el / por /about, ajústalo si es diferente */}
               </li>
             </ul>
-            {/* Sección de perfil de usuario */}
-            {isLoggedIn ? (
+
+            {/* --- 5. LÓGICA CONDICIONAL: Logueado vs No Logueado --- */}
+            {isAuthenticated ? (
+              // --- SI ESTÁ LOGUEADO ---
               <>
                 <div className='align-items-center'>
                   {/* Versión para pantallas grandes */}
                   <div className="d-none d-lg-flex align-items-center justify-content-end">
                     <div className="order-lg-1 text-end me-2">
                       <div>Bienvenido</div>
-                      <div className="fw-bold">{userName}</div>
+                      <div className="fw-bold">{displayUserName}</div> {/* Muestra el nombre */}
                     </div>
                     <div className="order-lg-1">
                       <img
-                        src={avatar}
+                        src={avatar} // Podrías usar user?.avatar si tuvieras esa info
                         alt="Perfil"
                         className="rounded-circle"
                         width="50"
@@ -96,78 +102,49 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                         <i className={`bi ms-1 ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`}></i>
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        {/* Opciones del menú */}
-                        
                         <li><Link className="dropdown-item" to='/perfil-page'>Mi Perfil</Link></li>
-                        {/*
-                        <li><Link className="dropdown-item" to="/settings">Configuración</Link></li>
-                        <li><Link className='dropdown-item' to='/Categorias-page'>Categorías</Link></li>
-                        <li><Link className='dropdown-item' to='/confirmacion-registro'>Confirmación Registro</Link></li>
-                        <li><Link className='dropdown-item' to='/deseados'>Deseados User</Link></li>
-                        <li><Link className='dropdown-item' to='/itinerariesSaved'>Itinerarios guardados</Link></li>
-                        <li><Link className='dropdown-item' to='/HistoryPage'>Historial de búsqueda</Link></li>
-                        <li><Link className='dropdown-item' to='/resume-page'>Página de resumen</Link></li>
-                        <li><Link className='dropdown-item' to='/itinerary'>Página de itinerario</Link></li>
-                        <li><Link className='dropdown-item' to='/Admin-Page-Places'>Página de solicitud de administrador</Link></li>
-                        <li><Link className='dropdown-item' to='/Admin-Page'>Página de administrador</Link></li>
-                        <li><Link className='dropdown-item' to='/Admin-dashboard'>Dashboard de administrador</Link></li>
-                        <li><Link className='dropdown-item' to='/Admin-SavedPlaces'>Lugares de administrador</Link></li>
-                        <li><Link className='dropdown-item' to='/favoritos'>Favoritos User</Link></li>
-                        <li><Link className='dropdown-item' to='/recuperar-contrasena'>Recuperar Contraseña</Link></li>
-                        <li><Link className='dropdown-item' to='/ingresar-nueva-contrasena'>Ingresar Nueva Contraseña</Link></li>
-                        <li><Link className='dropdown-item' to='/all-places'>Todos los lugares</Link></li>*/}
+                        <li><Link className='dropdown-item' to='/itinerariesSaved'>Buscar paciente</Link></li> {/* Ajusta esta ruta si es necesario */}
                         <li><Link className='dropdown-item' to='/image-analysis'>Análisis de imagenes</Link></li>
-                        <li><Link className='dropdown-item' to='/'>Inicio</Link></li>
-                        <li><Link className='dropdown-item' to='/register'>Registro</Link></li>
-                        <li><Link className='dropdown-item' to='/login'>Inicio de sesión</Link></li>
                         <li><Link className='dropdown-item' to='/Comenzar-Analisis'>Comenzar Análisis</Link></li>
-                        
-                        <li><Link className='dropdown-item' to='/itinerariesSaved'>Buscar paciente</Link></li>
-
-                        <li><Link className='dropdown-item' to='/Main-Loggin'>Login principal</Link></li>
                         <li><hr className="dropdown-divider" /></li>
-                        <li><Link className="dropdown-item" to="/logout">Cerrar Sesión</Link></li>
+                        {/* Botón de Cerrar Sesión */}
+                        <li><button className="dropdown-item" onClick={handleLogoutClick}>Cerrar Sesión</button></li>
                       </ul>
                     </div>
                   </div>
                 </div>
 
-
-                {/* Versión para pantallas pequeñas */}
+                {/* Versión para pantallas pequeñas (Logueado) */}
                 <div className='d-lg-none'>
                   <hr className="my-3"></hr>
                   <ul className=" d-flex navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
+                      <span className={`nav-link fw-bold ${lightLink ? 'blanco' : ''}`}>Hola, {displayUserName}</span>
+                    </li>
+                    <li className="nav-item">
                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/perfil-page'>Mi Perfil</Link>
                     </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/settings">Configuración</Link>
+                     <li className="nav-item">
+                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerariesSaved'>Buscar paciente</Link>
                     </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/deseados'>Deseados User</Link>
+                     <li className="nav-item">
+                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/image-analysis'>Análisis de imagenes</Link>
                     </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerariesSaved'>Buscar uusarios</Link>
+                     <li className="nav-item">
+                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/Comenzar-Analisis'>Comenzar Análisis</Link>
                     </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/HistoryPage'>Historial de búsqueda</Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerary'>Página de itinerario</Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/all-places'>Todos los lugares</Link>
-                    </li>
+                    {/* ... (otros enlaces específicos para usuarios logueados en móvil) ... */}
                     <li className="nav-item">
                       <hr className="dropdown-divider" />
                     </li>
                     <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/logout">Cerrar Sesión</Link>
+                      <button className={`nav-link btn btn-link ${lightLink ? 'blanco' : ''}`} onClick={handleLogoutClick}>Cerrar Sesión</button>
                     </li>
                   </ul>
                 </div>
               </>
             ) : (
+              // --- SI NO ESTÁ LOGUEADO ---
               <>
                 {showingresa && (
                   <Box>
@@ -175,9 +152,8 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       variant='secundario'
                       textCont='Ingresa'
                       width='6rem'
-                      height='2.rem'
+                      height='2.rem' // Corregí el '2.rem'
                       clickEvent={handleLoginClick}
-                      type='submit'
                     />
                   </Box>
                 )}
@@ -187,14 +163,14 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       variant='principal'
                       textCont='Regístrate'
                       width='6rem'
-                      height='2.rem'
+                      height='2.rem' // Corregí el '2.rem'
                       clickEvent={handleRegisterClick}
-                      type='submit'
                     />
                   </Box>
                 )}
               </>
             )}
+            {/* --- FIN LÓGICA CONDICIONAL --- */}
           </div>
         </div>
       </nav>

@@ -1,150 +1,110 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import { Container,Grid2 as Grid , Box, Typography, TextField, FormControl, InputLabel, OutlinedInput, InputAdornment, Button, Link, IconButton, FormHelperText } from '@mui/material';
+import { Container, Grid2 as Grid, Box, Typography, TextField, FormControl, InputLabel, OutlinedInput, InputAdornment, Button, Link, IconButton, FormHelperText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // <-- Asegúrate que axios esté importado
+
+// Iconos
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CloseIcon from '@mui/icons-material/Close';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookRoundedIcon from '@mui/icons-material/FacebookRounded';
+
+// Componentes
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import LeftImage from '../components/register/LeftImageR';
-import imgRegister from '../img/HomePage/ilustracion-mamografia.avif';
+import imgRegister from '../img/HomePage/ilustracion-mamografia.avif'; // Asegúrate que la ruta sea correcta
 
+// Estilos
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
-import '../css/RegisterPage.css';
+import '../css/RegisterPage.css'; // Asegúrate que la ruta sea correcta
 
 function RegisterPage() {
   const navigate = useNavigate();
+
+  // Estados para los campos del formulario
   const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState(''); // <-- NUEVO
   const [correo, setCorreo] = useState('');
+  const [cedula, setCedula] = useState(''); // <-- NUEVO
+  const [especialidad, setEspecialidad] = useState(''); // <-- NUEVO
   const [contraseña, setContraseña] = useState('');
   const [contraseña2, setContraseña2] = useState('');
+
+  // Estados para manejo de errores y validaciones
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(''); // <-- NUEVO para errores de la API
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // Validaciones de la contraseña
-  const validarContraseña = (contraseña) => {
-    const rules = {
-      longitudValida: /^(?=.{8,16}$)/.test(contraseña), // Longitud mínima de 8 y máxima de 16 caracteres
-      mayuscula: /[A-Z]/.test(contraseña), // Al menos una mayúscula
-      minuscula: /[a-z]/.test(contraseña), // Al menos una minúscula
-      numero: /\d/.test(contraseña), // Al menos un número
-      noVacio: contraseña.length > 0, // La contraseña no puede estar vacía
-    };
-    return rules;
-  };
-  //Validaciones del correo
-  const validarCorreo = (correo) => {
-    const rules = {
-      sinEspacios: /^[^\s]+$/.test(correo),
-      arrobaCaracteres: /^[^@]+@[^@]+$/.test(correo),
-      dominioConPunto: /@[^@]+\.[^@]+$/.test(correo),
-      noVacio: correo.length > 0,
-    };
-    return rules;
-  };
-  
-  // Manejadores de cambios para el correo
-
-  // Validación del nombre de usuario
-  const validarUser = (usermame) => {
-    const rules = {
-      longitudValida: /^(?=.{8,60}$)/.test(usermame), // Longitud mínima de 8 y máxima de 60 caracteres
-      noVacio: usermame.length > 0, // El nombre de usuario no puede estar vacío
-    };
-    return rules;
-  };
-  
-
-  const validarConfirmarContraseña = (contraseña, confirmacion) => {
-    return contraseña === confirmacion;
-  };
-
-  const handleNameChange = (e) => {
-    const value = e.target.value;
-    setNombre(value);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      nombre: validarUser(value),  // Validar nombre de usuario
-    }));
-  };
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setCorreo(value);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      correo: validarCorreo(value),
-    }));
-  };
-
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setContraseña(value);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      contraseña: validarContraseña(value),
-    }));
-  };
-
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setContraseña2(value);
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      contraseña2: validarConfirmarContraseña(contraseña, value),
-    }));
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    setFormSubmitted(true);
-
-    // Validar si los campos no están vacíos
-    if (!nombre || !correo || !contraseña || !contraseña2) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        camposObligatorios: true, // Añadir error para campos vacíos
-      }));
-      return;
-    }
-
-    // Validar contraseñas
-    const passwordRules = validarContraseña(contraseña);
-    const passwordsMatch = validarConfirmarContraseña(contraseña, contraseña2);
-
-    // Si la contraseña no cumple las reglas
-    if (!passwordRules.longitudValida || !passwordRules.mayuscula || !passwordRules.minuscula || !passwordRules.numero || !passwordRules.noVacio) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        contraseña: passwordRules,
-      }));
-    }
-
-    // Si las contraseñas no coinciden
-    if (!passwordsMatch) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        contraseña2: false, // Marcar error en confirmar contraseña
-      }));
-    }
-
-    // Si todo está correcto, proceder con el registro
-    
-  };
-
+  // Estados para visibilidad de contraseña
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
 
+  // --- VALIDACIONES (simplificadas para claridad, puedes hacerlas más robustas) ---
+  const validarCampos = () => {
+    let tempErrors = {};
+    let isValid = true;
+
+    if (!nombre) { tempErrors.nombre = "El nombre es requerido."; isValid = false; }
+    if (!apellido) { tempErrors.apellido = "El apellido es requerido."; isValid = false; } // <-- NUEVO
+    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) { tempErrors.correo = "Correo inválido."; isValid = false; }
+    if (!cedula) { tempErrors.cedula = "La cédula profesional es requerida."; isValid = false; } // <-- NUEVO
+    if (!especialidad) { tempErrors.especialidad = "La especialidad es requerida."; isValid = false; } // <-- NUEVO
+    if (!contraseña || contraseña.length < 8) { tempErrors.contraseña = "La contraseña debe tener al menos 8 caracteres."; isValid = false; }
+    if (contraseña !== contraseña2) { tempErrors.contraseña2 = "Las contraseñas no coinciden."; isValid = false; }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
+  // --- MANEJADOR DEL SUBMIT ---
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setFormSubmitted(true);
+    setApiError(''); // Limpiar errores de API previos
+
+    if (validarCampos()) {
+      try {
+        // Enviar datos al backend
+        const response = await axios.post('http://localhost:8000/api/register/', {
+          correo: correo,
+          password: contraseña,
+          nombre: nombre,
+          apellido: apellido, // <-- NUEVO
+          cedula: cedula, // <-- NUEVO
+          especialidad: especialidad, // <-- NUEVO
+          // telefono y direccion son opcionales según el serializer, no los incluimos por ahora
+        });
+
+        console.log('Registro exitoso:', response.data);
+        // Redirigir a la página de confirmación o login
+        navigate('/login'); // O '/login' si prefieres
+
+      } catch (error) {
+        console.error("Error en el registro:", error.response?.data);
+        // Mostrar errores específicos de la API si están disponibles
+        if (error.response && error.response.data) {
+           // Intenta mostrar el primer error que venga del backend
+           const backendErrors = error.response.data;
+           const firstErrorKey = Object.keys(backendErrors)[0];
+           const firstErrorMessage = backendErrors[firstErrorKey];
+           setApiError(`Error: ${firstErrorKey} - ${Array.isArray(firstErrorMessage) ? firstErrorMessage[0] : firstErrorMessage}`);
+        } else {
+           setApiError('Error al registrar. Inténtalo de nuevo.');
+        }
+      }
+    } else {
+      console.log("Errores de validación en el formulario");
+    }
+  };
+
+  // --- Handlers para visibilidad de contraseña ---
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleClickShowPassword2 = () => setShowPassword2(!showPassword2);
   const handleMouseDownPassword = (e) => e.preventDefault();
-
   const handleHomeClick = () => navigate('/');
-
-
 
   return (
     <ThemeProvider theme={ThemeMaterialUI}>
@@ -157,18 +117,18 @@ function RegisterPage() {
             lightLink={false}
             staticNavbar={false}
           />
-          <Container maxWidth="md" disableGutters className= 'my-5 py-4 d-flex align-items-center justify-content-center'>
+          <Container maxWidth="md" disableGutters className='my-5 py-4 d-flex align-items-center justify-content-center'>
             <Grid container sx={{ justifyContent: 'center', borderRadius: '6px', overflow: 'hidden' }}>
               {/* Left Image Section */}
               <Grid size={{ xs: 12, md: 6 }} className='register-left-container'>
                 <LeftImage
-                  imageUrl={imgRegister}              
-                  nombreFotografo=""/>
+                  imageUrl={imgRegister}
+                  nombreFotografo="" />
               </Grid>
 
               {/* Form Section */}
               <Grid size={{ xs: 12, md: 6 }}>
-                                <Box className="register-right-form bg-light">
+                <Box className="register-right-form bg-light">
                   <Box className="mx-3 pb-5 pt-3">
                     <Box className="d-flex justify-content-end">
                       <IconButton aria-label="cerrar" onClick={handleHomeClick}>
@@ -176,70 +136,92 @@ function RegisterPage() {
                       </IconButton>
                     </Box>
                     <Box className="mx-4">
-                      
+
                       <Typography variant="h4" className="fw-bold">Regístrate</Typography>
                       <Typography variant="subtitle1">Completa el formulario para continuar</Typography>
 
                       <form className="register-form" onSubmit={handleFormSubmit}>
-                        <Box className="my-4">
+                        {/* Campo Nombre */}
+                        <Box className="my-3">
                           <TextField
-                            label="Nombre de usuario"
+                            label="Nombre(s)"
                             value={nombre}
-                            onChange={handleNameChange}
+                            onChange={(e) => setNombre(e.target.value)}
                             fullWidth
                             size="small"
                             required
-                            error={formSubmitted && !errors.nombre?.longitudValida}
-                            helperText={formSubmitted && !errors.nombre?.longitudValida ? "El nombre de usuario debe tener entre 8 y 60 caracteres." : ""}
+                            error={formSubmitted && !!errors.nombre}
+                            helperText={formSubmitted && errors.nombre}
                           />
-                        <Typography variant="body2" color="textSecondary" className="mb-2 ms-2 fw-medium">
-                          El username debe cumplir con las siguientes reglas:
-                        </Typography>
                         </Box>
 
+                        {/* Campo Apellido */}
                         <Box className="my-3">
-                          <ul>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.nombre?.longitudValida ? 'text-success fw-semibold' : ''}`}>El nombre de usuario debe tener entre 8 y 60 caracteres.</li>
-                          </ul>
+                          <TextField
+                            label="Apellido(s)" // <-- NUEVO
+                            value={apellido}
+                            onChange={(e) => setApellido(e.target.value)}
+                            fullWidth
+                            size="small"
+                            required
+                            error={formSubmitted && !!errors.apellido}
+                            helperText={formSubmitted && errors.apellido}
+                          />
                         </Box>
 
-
-                        <Box className="my-4">
+                        {/* Campo Correo */}
+                        <Box className="my-3">
                           <TextField
                             label="Correo electrónico"
                             value={correo}
-                            onChange={handleEmailChange}
+                            onChange={(e) => setCorreo(e.target.value)}
                             fullWidth
                             size="small"
                             required
-                            error={formSubmitted && !errors.correo?.noVacio}
-                            helperText={formSubmitted && !errors.correo?.noVacio ? "El correo no debe estar vacío." : ""}
+                            error={formSubmitted && !!errors.correo}
+                            helperText={formSubmitted && errors.correo}
                           />
-                          <Typography variant="body2" color="textSecondary" className="mb-2 ms-2 fw-medium">
-                            El correo debe cumplir con las siguientes reglas:
-                          </Typography>
-                          <ul>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.correo?.noVacio ? 'text-success fw-semibold' : ''}`}>No debe estar vacío.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.correo?.sinEspacios ? 'text-success fw-semibold' : ''}`}>No debe contener espacios.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.correo?.arrobaCaracteres ? 'text-success fw-semibold' : ''}`}>Debe tener al menos un carácter antes y después del símbolo @.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.correo?.dominioConPunto ? 'text-success fw-semibold' : ''}`}>Debe incluir un punto en la parte del dominio (por ejemplo, .com, .net).</li>
-                          </ul>
                         </Box>
 
-                        <Box className="my-4">
+                        {/* Campo Cédula */}
+                        <Box className="my-3">
+                          <TextField
+                            label="Cédula Profesional" // <-- NUEVO
+                            value={cedula}
+                            onChange={(e) => setCedula(e.target.value)}
+                            fullWidth
+                            size="small"
+                            required
+                            error={formSubmitted && !!errors.cedula}
+                            helperText={formSubmitted && errors.cedula}
+                          />
+                        </Box>
+
+                        {/* Campo Especialidad */}
+                        <Box className="my-3">
+                          <TextField
+                            label="Especialidad" // <-- NUEVO
+                            value={especialidad}
+                            onChange={(e) => setEspecialidad(e.target.value)}
+                            fullWidth
+                            size="small"
+                            required
+                            error={formSubmitted && !!errors.especialidad}
+                            helperText={formSubmitted && errors.especialidad}
+                          />
+                        </Box>
+
+                        {/* Campo Contraseña */}
+                        <Box className="my-3">
                           <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña}>
                             <InputLabel>Contraseña</InputLabel>
                             <OutlinedInput
                               type={showPassword ? 'text' : 'password'}
                               value={contraseña}
-                              onChange={handlePasswordChange}
+                              onChange={(e) => setContraseña(e.target.value)}
                               endAdornment={
                                 <InputAdornment position="end">
-                                  <IconButton
-                                    onClick={handleClickShowPassword}
-                                    onMouseDown={handleMouseDownPassword}
-                                    edge="end"
-                                  >
+                                  <IconButton onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
                                     {showPassword ? <VisibilityOff /> : <Visibility />}
                                   </IconButton>
                                 </InputAdornment>
@@ -247,23 +229,21 @@ function RegisterPage() {
                               label="Contraseña"
                               required
                             />
+                            <FormHelperText>{formSubmitted && errors.contraseña}</FormHelperText>
                           </FormControl>
                         </Box>
 
-                        <Box className="my-4">
-                          <FormControl fullWidth size="small" error={formSubmitted && !errors.contraseña2}>
+                        {/* Campo Confirmar Contraseña */}
+                        <Box className="my-3">
+                          <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña2}>
                             <InputLabel>Confirmar contraseña</InputLabel>
                             <OutlinedInput
                               type={showPassword2 ? 'text' : 'password'}
                               value={contraseña2}
-                              onChange={handleConfirmPasswordChange}
+                              onChange={(e) => setContraseña2(e.target.value)}
                               endAdornment={
                                 <InputAdornment position="end">
-                                  <IconButton
-                                    onClick={handleClickShowPassword2}
-                                    onMouseDown={handleMouseDownPassword}
-                                    edge="end"
-                                  >
+                                  <IconButton onClick={handleClickShowPassword2} onMouseDown={handleMouseDownPassword} edge="end">
                                     {showPassword2 ? <VisibilityOff /> : <Visibility />}
                                   </IconButton>
                                 </InputAdornment>
@@ -271,23 +251,18 @@ function RegisterPage() {
                               label="Confirmar contraseña"
                               required
                             />
+                             <FormHelperText>{formSubmitted && errors.contraseña2}</FormHelperText>
                           </FormControl>
-                          <Typography variant="body2" color="textSecondary" className="mb-2 ms-2 fw-medium">
-                          La contraseña debe cumplir con las siguientes reglas:
-                            </Typography>
                         </Box>
 
-                        <Box className="my-3">
-                          <ul>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.contraseña?.longitudValida ? 'text-success fw-semibold' : ''}`}>Debe tener entre 8 y 16 caracteres.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.contraseña?.mayuscula ? 'text-success fw-semibold' : ''}`}>Debe contener al menos una letra mayúscula.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.contraseña?.minuscula ? 'text-success fw-semibold' : ''}`}>Debe contener al menos una letra minúscula.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.contraseña?.numero ? 'text-success fw-semibold' : ''}`}>Debe contener al menos un número.</li>
-                            <li className={`lo_pa-rule-input fw-medium ${errors.contraseña2 ? 'text-success fw-semibold' : ''}`}>Las contraseñas coinciden.</li>
-                          </ul>
-                        </Box>
+                         {/* Mostrar errores de la API */}
+                         {apiError && (
+                          <Typography color="error" variant="body2" sx={{ textAlign: 'center', mb: 2 }}>
+                            {apiError}
+                          </Typography>
+                        )}
 
-                                               {/* Botón de registro */}
+                        {/* Botón de registro */}
                         <Box className="my-4">
                           <Button fullWidth variant="contained" type="submit">
                             Registrarse
@@ -308,11 +283,11 @@ function RegisterPage() {
                         </Box>
 
                         {/* Enlaces a los Términos de Servicio y Política de Privacidad */}
-                        <div className="mt-4">
+                        <div className="mt-4 text-center">
                           <small>
                             Al registrarte, aceptas nuestros
-                            <Link to="/terminos-condiciones" className="fontAzulMayaOscuro"> Términos de Servicio</Link> y
-                            <Link to="/politica-privacidad" className="fontAzulMayaOscuro"> Política de Privacidad</Link>.
+                            <Link href="/terminos-condiciones" underline="hover" sx={{ mx: 0.5 }}>Términos de Servicio</Link> y
+                            <Link href="/politica-privacidad" underline="hover" sx={{ ml: 0.5 }}>Política de Privacidad</Link>.
                           </small>
                         </div>
                       </form>

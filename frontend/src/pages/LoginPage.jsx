@@ -1,10 +1,12 @@
 // modulos importados
+import { useAuth } from '../context/AuthContext';
 import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container, Box, Typography } from '@mui/material';
 import { TextField, Grid2 as Grid, FormControl, InputLabel, Button, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import FormHelperText from '@mui/material/FormHelperText';
+import axios from 'axios'; // <-- 1. IMPORTAR AXIOS
 
 // modulos de iconos
 import { IconButton, InputAdornment, OutlinedInput } from '@mui/material';
@@ -26,9 +28,12 @@ import casaLeon from '../img/HomePage/ilustracion-mamografia.avif';
 
 function LoginPage() {
   // validacion de correo
+  const { login } = useAuth();
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [errorLogin, setErrorLogin] = useState(''); // <-- 2. AÑADIR ESTADO DE ERROR
+
   const [correoReglas, setCorreoReglas] = useState({
     sinEspacios: false,
     arrobaCaracteres: false,
@@ -53,13 +58,45 @@ function LoginPage() {
     setContraseña(e.target.value);
   };
 
-  const handleLogin = (e) => {
+  // redireccionamiento a home
+  const navigate = useNavigate();
+  const handleHomeClick = () => {
+    navigate('/');
+  };
+
+  // <-- 3. REEMPLAZAR handleLogin CON ESTA FUNCIÓN ASÍNCRONA
+  const handleLogin = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
+    setErrorLogin(''); // Limpiar errores previos
 
-    if (correo && contraseña) {
-      // Lógica de inicio de sesión...
-      console.log("Iniciando sesión...");
+    // Validar que los campos no estén vacíos (ya lo haces)
+    if (!correo || !contraseña) {
+      console.log("Campos vacíos");
+      return; // No continuar si hay errores
+    }
+
+    try {
+
+      const response = await axios.post('http://localhost:8000/api/token/', {
+        username: correo, // Django espera 'username', le pasamos el 'correo'
+        password: contraseña,
+      });
+
+      // Si el login es exitoso (código 200)
+      console.log("Login exitoso:", response.data);
+      
+      // Guardamos los tokens en el Local Storage del navegador
+      login(response.data.access, response.data.refresh);
+
+      navigate('/itinerariesSaved'); 
+
+    } catch (error) {
+      // Si el login falla (error 400 o 401)
+      console.error("Error en el login:", error);
+      
+      // Ponemos un mensaje de error amigable
+      setErrorLogin('Correo o contraseña incorrectos. Por favor, inténtalo de nuevo.');
     }
   };
 
@@ -74,12 +111,6 @@ function LoginPage() {
   };
   const handleMouseUpPassword = (event) => {
     event.preventDefault();
-  };
-
-  // redireccionamiento a home
-  const navigate = useNavigate();
-  const handleHomeClick = () => {
-    navigate('/');
   };
 
 
@@ -126,13 +157,12 @@ function LoginPage() {
                             label="Correo electrónico"
                             placeholder='correo@ejemplo.com'
                             size="small"
-                            type='email'
+                            type='email' //email
                             onChange={handleCorreoChange}
                             fullWidth
                             // errores si no cumple con las reglas
                             error={formSubmitted && !correo}
                             helperText={formSubmitted && !correo ? "El correo no puede estar vacío" : ""}
-
                           />
                           <Typography variant="body2" color="textSecondary" className='mb-2 ms-2 fw-medium'>
                             El correo debe cumplir con las siguientes reglas:
@@ -174,6 +204,13 @@ function LoginPage() {
                           </FormControl>
                         </Box>
 
+                        {/* */}
+                        {errorLogin && (
+                          <Typography color="error" variant="body2" className="mb-3" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                            {errorLogin}
+                          </Typography>
+                        )}
+                        
                         <Box className='lo_pa-iniciar-olvidaste'>
                           <Button variant="contained" type="submit">
                             Iniciar sesión
