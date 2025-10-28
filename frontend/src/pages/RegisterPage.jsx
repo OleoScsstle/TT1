@@ -118,16 +118,16 @@ function RegisterPage() {
             staticNavbar={false}
           />
           <Container maxWidth="md" disableGutters className='my-5 py-4 d-flex align-items-center justify-content-center'>
-            <Grid container sx={{ justifyContent: 'center', borderRadius: '6px', overflow: 'hidden' }}>
+            <Grid container sx={{ justifyContent: 'center', borderRadius: '6px', overflow: 'hidden', display: 'flex'}}>
               {/* Left Image Section */}
-              <Grid size={{ xs: 12, md: 6 }} className='register-left-container'>
+              <Grid item size={{ xs: 12, md: 6 }} className='register-left-container' sx={{display: 'flex'}}>
                 <LeftImage
                   imageUrl={imgRegister}
                   nombreFotografo="" />
               </Grid>
 
               {/* Form Section */}
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
                 <Box className="register-right-form bg-light">
                   <Box className="mx-3 pb-5 pt-3">
                     <Box className="d-flex justify-content-end">

@@ -1,7 +1,9 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import Medico
-from .serializers import MedicoSerializer
+from .serializers import MedicoSerializer, UserSerializer
 
 class MedicoCreateView(generics.CreateAPIView):
     """
@@ -10,4 +12,15 @@ class MedicoCreateView(generics.CreateAPIView):
     """
     queryset = Medico.objects.all()
     serializer_class = MedicoSerializer
-    permission_classes = [AllowAny] # Permite que CUALQUIERA se pueda registrar
+    permission_classes = [AllowAny]
+
+class UserProfileView(APIView):
+    """
+    Vista para obtener los datos del usuario actualmente logueado.
+    Requiere autenticación.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user) # request.user contiene el usuario logueado
+        return Response(serializer.data)

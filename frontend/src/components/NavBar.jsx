@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import '../css/NavBar.css'; // Asegúrate que la ruta sea correcta
-import logo from '../img/dashboard.png'; // Asegúrate que la ruta sea correcta
-import avatar from '../img/userFoto.jpg'; // Asegúrate que la ruta sea correcta
+import '../css/NavBar.css';
+import logo from '../img/dashboard.png';
+import avatar from '../img/userFoto.jpg';
 
 // Componentes locales
 import ButtonsMod from './ButtonsMod';
-import { useAuth } from '../context/AuthContext'; // <-- 1. Importa el hook useAuth
+import { useAuth } from '../context/AuthContext'; 
 
 function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, staticNavbar }) {
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuth(); // <-- 2. Obtén el estado y funciones del contexto
-  // const [userName, setUserName] = useState('Nombre de Usuario'); // Ya no necesitamos este estado local
+  const { isAuthenticated, user, logout } = useAuth();
+  
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLoginClick = () => {
@@ -23,7 +23,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
     navigate('/register');
   };
 
-  const handleLogoutClick = () => { // <-- 3. Nueva función para cerrar sesión
+  const handleLogoutClick = () => {
     logout();
     navigate('/login'); // Redirige al login después de cerrar sesión
   };
@@ -33,7 +33,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
   };
 
   // Determina qué nombre mostrar (si tenemos datos del usuario o un genérico)
-  const displayUserName = user?.nombre || 'Usuario'; // <-- 4. Usa el nombre del contexto si existe
+  const displayUserName = user?.email || 'Usuario'; // <-- 4. Usa el nombre del contexto si existe
 
   return (
     <>

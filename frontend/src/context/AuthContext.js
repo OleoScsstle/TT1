@@ -1,49 +1,75 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios'; // Import axios para futuras llamadas (ej. perfil de usuario)
+import axios from 'axios';
 
-// 1. Crear el Contexto
 const AuthContext = createContext(null);
 
-// Hook personalizado para usar el contexto fácilmente
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-// 2. Crear el Proveedor (AuthProvider)
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
-    token: localStorage.getItem('accessToken') || null, // Token de acceso
-    user: null, // Información del usuario (la obtendremos después)
-    isAuthenticated: !!localStorage.getItem('accessToken'), // Booleano: ¿está logueado?
+    token: localStorage.getItem('accessToken') || null,
+    user: null,
+    isAuthenticated: !!localStorage.getItem('accessToken'),
+    isLoading: true,
   });
 
-  // Efecto para verificar el token al cargar la app
+  const fetchUserProfile = async (token) => {
+    if (!token) {
+      setAuthState(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+    console.log("Intentando obtener perfil con token:", token);
+    try {
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+      const response = await axios.get('http://localhost:8000/api/profile/', config);
+
+      console.log("Perfil obtenido:", response.data);
+      setAuthState(prev => ({
+        ...prev,
+        user: response.data,
+        isAuthenticated: true,
+        isLoading: false,
+      }));
+    } catch (error) {
+      console.error("Error al obtener el perfil:", error.response?.data || error.message);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setAuthState({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      // Opcional: Podrías verificar si el token sigue siendo válido aquí
-      // haciendo una petición a una ruta protegida del backend.
-      // Por ahora, solo asumimos que si hay token, está autenticado.
-      setAuthState({
-        token: token,
-        user: null, // Aún no cargamos los datos del usuario
-        isAuthenticated: true,
-      });
-      // TODO: Cargar datos del usuario desde el backend usando el token
+      fetchUserProfile(token);
+    } else {
+      setAuthState(prev => ({ ...prev, isLoading: false }));
     }
-  }, []);
+  }, []); // Se ejecuta solo una vez al montar
 
   // Función para Iniciar Sesión
   const login = (access, refresh) => {
     localStorage.setItem('accessToken', access);
     localStorage.setItem('refreshToken', refresh);
-    setAuthState({
-      token: access,
-      user: null, // Aún no cargamos los datos del usuario
-      isAuthenticated: true,
-    });
-    // TODO: Cargar datos del usuario desde el backend
-    console.log("Usuario logueado, token guardado.");
+    setAuthState(prev => ({
+        ...prev,
+        token: access,
+        isAuthenticated: true,
+        isLoading: true,
+    }));
+    fetchUserProfile(access); // Llama a la función para obtener los datos del usuario
+    console.log("Usuario logueado, token guardado. Obteniendo perfil...");
   };
 
   // Función para Cerrar Sesión
@@ -54,21 +80,22 @@ export const AuthProvider = ({ children }) => {
       token: null,
       user: null,
       isAuthenticated: false,
+      isLoading: false,
     });
     console.log("Usuario deslogueado, tokens eliminados.");
-    // Opcional: Redirigir al login
-    // navigate('/login'); // Necesitarías importar useNavigate aquí o manejarlo en el componente que llama a logout
   };
 
-  // 3. Valor que proveerá el contexto
   const value = {
-    ...authState, // Pasa el token, user, isAuthenticated
+    ...authState,
     login,
     logout,
   };
 
-  // 4. Renderizar el proveedor con los children
+  if (authState.isLoading) {
+    return <div>Cargando...</div>;
+  }
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext; // Exporta el contexto por si se necesita directamente
+export default AuthContext;

@@ -89,7 +89,7 @@ function LoginPage() {
       // Guardamos los tokens en el Local Storage del navegador
       login(response.data.access, response.data.refresh);
 
-      navigate('/itinerariesSaved'); 
+      navigate('/Main-Loggin'); 
 
     } catch (error) {
       // Si el login falla (error 400 o 401)
