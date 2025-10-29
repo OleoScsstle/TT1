@@ -27,7 +27,7 @@ import PreferenciasModal from '../components/preferencias/PreferenciasModal';
 import AdminSavedPlaces from '../pages/AdminSavedPlaces';
 import ComenzarAnalisisPages from '../pages/comenzarAnalisisPage';
 import MainPageLoggin from '../pages/Main-Loggin';  
-import PerfilPaciente from '../pages/Perfil-Paciente';  
+import PerfilPaciente from '../pages/Perfil-Paciente';
 
 
 function AppRouter() {
@@ -55,7 +55,6 @@ function AppRouter() {
         <Route path='/perfil-page' element={<Perfil />}/>
         <Route path='/alcaldias' element={<Alcaldias/>} />
         <Route path='/recuperar-contrasena' element={<RecuperarContrasena />} />
-        <Route path='/ingresar-nueva-contrasena' element={<IngresarNuevaContrasena />} />
         <Route path='/Admin-dashboard' element={<AdminDash/>} />
         <Route path='/all-places' element={<AllPlacesPage/>} />
         <Route path = '/preferencias' element={<PreferenciasModal/>} />
@@ -63,6 +62,7 @@ function AppRouter() {
         <Route path='/Comenzar-Analisis' element={<ComenzarAnalisisPages/>}/>
         <Route path='/Main-Loggin' element={<MainPageLoggin/>}/>
         <Route path='/perfil-paciente' element={<PerfilPaciente/>}/>
+        <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena/>} />
       </Routes>
     </Router>
   );

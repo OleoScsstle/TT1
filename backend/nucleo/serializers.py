@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from .models import Medico
 
 class MedicoSerializer(serializers.ModelSerializer):
@@ -39,6 +41,36 @@ class MedicoSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        # Define los campos que quieres enviar a React
+        
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
-        # Puedes añadir más campos si los necesitas, como 'is_staff'
+        
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer para validar el correo electrónico al solicitar
+    restablecimiento de contraseña.
+    """
+    email = serializers.EmailField(required=True)
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer para validar el token, uidb64 y la nueva contraseña
+    al confirmar el restablecimiento.
+    """
+    uidb64 = serializers.CharField(required=True)
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
+
+    def validate(self, attrs):
+        # Valida que las contraseñas coincidan
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Las contraseñas no coinciden."})
+
+        # Valida la fortaleza de la contraseña usando los validadores de Django
+        try:
+            validate_password(attrs['new_password'])
+        except ValidationError as e:
+            raise serializers.ValidationError({"new_password": list(e.messages)})
+
+        return attrs
