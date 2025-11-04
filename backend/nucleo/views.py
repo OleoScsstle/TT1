@@ -3,7 +3,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import Medico
+from rest_framework import viewsets
+from .models import Medico, Administrador, Paciente # <-- AÑADE , Paciente
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -17,6 +18,8 @@ from django.contrib.auth import get_user_model
 from .serializers import MedicoSerializer, UserSerializer
 from .serializers import PasswordResetRequestSerializer
 from .serializers import PasswordResetConfirmSerializer
+from .serializers import PacienteSerializer
+
 
 class MedicoCreateView(generics.CreateAPIView):
     """
@@ -113,3 +116,32 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         else:
             # Si el usuario no existe o el token es inválido
             return Response({"detail": "El enlace de restablecimiento es inválido o ha expirado."}, status=status.HTTP_400_BAD_REQUEST)
+        
+class PacienteViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint que permite a los médicos ver y registrar
+    a sus propios pacientes.
+    """
+    serializer_class = PacienteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Esta vista solo debe devolver los pacientes
+        del médico que está actualmente logueado.
+        """
+        user = self.request.user
+        if hasattr(user, 'medico_perfil'):
+            return Paciente.objects.filter(esp_encargado=user.medico_perfil)
+        return Paciente.objects.none()
+
+    def perform_create(self, serializer):
+        """
+        Asigna automáticamente al médico logueado
+        como el 'esp_encargado' del nuevo paciente.
+        """
+        if hasattr(self.request.user, 'medico_perfil'):
+            medico = self.request.user.medico_perfil
+            serializer.save(esp_encargado=medico)
+        else:
+            raise serializers.ValidationError("No tienes un perfil de médico para asignar pacientes.")

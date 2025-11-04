@@ -103,7 +103,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       </button>
                       <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><Link className="dropdown-item" to='/perfil-page'>Mi Perfil</Link></li>
-                        <li><Link className='dropdown-item' to='/itinerariesSaved'>Buscar paciente</Link></li> {/* Ajusta esta ruta si es necesario */}
+                        <li><Link className='dropdown-item' to='/Main-Loggin'>Buscar paciente</Link></li> {/* Ajusta esta ruta si es necesario */}
                         <li><Link className='dropdown-item' to='/image-analysis'>Análisis de imagenes</Link></li>
                         <li><Link className='dropdown-item' to='/Comenzar-Analisis'>Comenzar Análisis</Link></li>
                         <li><hr className="dropdown-divider" /></li>

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import Medico
+from .models import Paciente
 
 class MedicoSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
@@ -39,10 +40,12 @@ class MedicoSerializer(serializers.ModelSerializer):
         return medico
     
 class UserSerializer(serializers.ModelSerializer):
+    medico_perfil = MedicoSerializer(read_only=True)
+
     class Meta:
         model = User
         
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'medico_perfil']
         
 
 class PasswordResetRequestSerializer(serializers.Serializer):
@@ -74,3 +77,33 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             raise serializers.ValidationError({"new_password": list(e.messages)})
 
         return attrs
+    
+
+class PacienteSerializer(serializers.ModelSerializer):
+    esp_encargado = MedicoSerializer(read_only=True) # El médico se asigna en la vista
+
+    class Meta:
+        model = Paciente
+        fields = [
+            'id', 
+            'nombre', 
+            'apellido', 
+            'telefono', 
+            'direccion', 
+            'fecha_nac', 
+            'sexo', 
+            'correo', 
+            'estado',
+            'historial_medico',
+            'imagen_perfil', # <-- Añadimos el nuevo campo real
+            'esp_encargado',
+        ]
+        # Hacemos opcionales los campos que no son 100% requeridos
+        extra_kwargs = {
+            'telefono': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'direccion': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'correo': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'historial_medico': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'estado': {'required': False},
+            'imagen_perfil': {'required': False, 'allow_null': True}, # <-- Marcamos la imagen como opcional
+        }

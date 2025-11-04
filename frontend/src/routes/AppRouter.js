@@ -14,7 +14,7 @@ import HistorialBusqueda from '../pages/HistoryPage';
 import GenerarItinerario from '../pages/GenerarItinerario';
 import CategoriasPage from '../pages/Categorias';
 import ResumePage from '../pages/ResumenPage';
-import RegisterPlacePage from '../pages/RegisterPlacePage'; 
+import RegisterPacientPage from '../pages/RegisterPacientPage'; 
 import AdminPage from '../pages/Administrador'; 
 import AdminPagePlaces from '../pages/AdministradorLugares'; 
 import Perfil from '../pages/Perfil';
@@ -49,7 +49,7 @@ function AppRouter() {
         <Route path='/placepage' element={<PlacePage />} />
         <Route path='/generar-itinerario' element={<GenerarItinerario />} />
         <Route path='/resume-page' element={<ResumePage />}/>
-        <Route path='/image-analysis' element={<RegisterPlacePage />}/>
+        <Route path='/image-analysis' element={<RegisterPacientPage />}/>
         <Route path='/Admin-Page' element={<AdminPage />}/>
         <Route path='/Admin-Page-Places' element={<AdminPagePlaces />}/>
         <Route path='/perfil-page' element={<Perfil />}/>
@@ -61,7 +61,7 @@ function AppRouter() {
         <Route path='/Admin-SavedPlaces' element={<AdminSavedPlaces/>}/>
         <Route path='/Comenzar-Analisis' element={<ComenzarAnalisisPages/>}/>
         <Route path='/Main-Loggin' element={<MainPageLoggin/>}/>
-        <Route path='/perfil-paciente' element={<PerfilPaciente/>}/>
+        <Route path='/perfil-paciente/:id' element={<PerfilPaciente />} />
         <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena/>} />
       </Routes>
     </Router>

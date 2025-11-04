@@ -79,11 +79,10 @@ function LoginPage() {
     try {
 
       const response = await axios.post('http://localhost:8000/api/token/', {
-        username: correo, // Django espera 'username', le pasamos el 'correo'
+        username: correo,
         password: contraseña,
       });
 
-      // Si el login es exitoso (código 200)
       console.log("Login exitoso:", response.data);
       
       // Guardamos los tokens en el Local Storage del navegador

@@ -62,6 +62,9 @@ class Paciente(models.Model):
     ]
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     correo = models.EmailField(blank=True, null=True)
+
+    imagen_perfil = models.ImageField(upload_to='perfiles_pacientes/', blank=True, null=True)
+    historial_medico = models.TextField(blank=True, null=True)
     
     ESTADO_PACIENTE_CHOICES = [
         ('ACTIVO', 'Activo'),
