@@ -1,10 +1,10 @@
+from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from .views import MedicoCreateView
-from rest_framework.routers import DefaultRouter
 from .views import MedicoCreateView, UserProfileView, PasswordResetRequestView, PasswordResetConfirmView, PacienteViewSet
 
 router = DefaultRouter()
-router.register(r'pacientes', PacienteViewSet, basename='paciente') # Registra '/api/pacientes/'
+router.register(r'pacientes', PacienteViewSet, basename='paciente')
 
 urlpatterns = [
     # Esta será la URL /api/register/

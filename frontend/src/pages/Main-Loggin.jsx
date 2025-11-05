@@ -98,14 +98,12 @@ function MedicalPage() {
       };
       fetchPacientes();
     }
-  }, [seccionActiva, token]); // Se ejecuta si cambia la sección o el token
+  }, [seccionActiva, token]); 
 
-  // --- CORREGIDO: Ruta para agregar paciente ---
   const handleAgregarPaciente = () => {
-    navigate('/Comenzar-Analisis'); // Esta es la ruta correcta
+    navigate('/image-analysis');
   };
 
-  // --- AÑADIDO: Navegar al perfil del paciente ---
   const handleVerPaciente = (pacienteId) => {
     navigate(`/perfil-paciente/${pacienteId}`);
   };
@@ -119,14 +117,14 @@ function MedicalPage() {
   const renderContenido = () => {
     switch(seccionActiva) {
       case 'inicio':
-        return renderInicio(); // <-- Esta función será modificada
+        return renderInicio(); 
       case 'crear':
         return renderCrear();
       case 'catalogo':
-        return renderCatalogo(); // Esta usa 'pacientesEjemplo'
+        return renderCatalogo();
       case 'visualizacion':
-        return renderVisualizacion(); // Esta usa 'citasMedicas'
-      // ... (resto de tus casos)
+        return renderVisualizacion();
+
       case 'informacion':
         return renderInformacion();
       default:
@@ -134,7 +132,6 @@ function MedicalPage() {
     }
   };
 
-  // --- FUNCIÓN renderInicio() MODIFICADA ---
   const renderInicio = () => (
     <>
       <Paper elevation={0} sx={{ bgcolor: 'white', borderRadius: '8px', border: '1px solid #e1e5e9', mb: 3 }}>
@@ -149,7 +146,6 @@ function MedicalPage() {
           </Box>
         </Box>
         
-        {/* --- Lógica de Carga / Error / Lista / Vacío --- */}
         {loadingPacientes ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress color="primary" />
@@ -173,7 +169,7 @@ function MedicalPage() {
             </Typography>
           </Box>
         ) : (
-          // Si hay pacientes, muéstralos en una lista
+
           <List sx={{ p: 0 }}>
             {pacientes.map((paciente) => (
               <ListItem
@@ -195,12 +191,8 @@ function MedicalPage() {
         )}
         {/* ------------------------------------------- */}
       </Paper>
-
-      {/* La sección "Apps para explorar" se queda igual (comentada) */}
     </>
   );
-
-  // --- El resto de tus funciones (renderCrear, renderCatalogo, etc.) se quedan EXACTAMENTE IGUAL ---
 
   const renderCrear = () => (
     <Paper elevation={0} sx={{ bgcolor: 'white', borderRadius: '8px', border: '1px solid #e1e5e9', p: 4 }}>
@@ -341,7 +333,6 @@ function MedicalPage() {
     return opcion ? opcion.label : 'Inicio';
   };
 
-  // --- EL RETURN PRINCIPAL SE QUEDA IGUAL ---
   return (
     <ThemeProvider theme={ThemeMaterialUI}>
       <Navbar
@@ -453,10 +444,8 @@ function MedicalPage() {
           </Box>
         </Paper>
 
-        {/* Contenido principal */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           
-          {/* Header principal */}
           <Paper 
             elevation={0}
             sx={{ 
@@ -498,7 +487,6 @@ function MedicalPage() {
               </Box>
             </Box>
 
-            {/* Tabs */}
             {seccionActiva === 'inicio' && (
               <Box sx={{ mt: 2, borderBottom: '2px solid #1976d2', display: 'inline-block' }}>
                 <Typography 
@@ -515,7 +503,6 @@ function MedicalPage() {
             )}
           </Paper>
 
-          {/* Área de contenido */}
           <Box sx={{ flex: 1, p: 3 }}>
             {renderContenido()}
           </Box>

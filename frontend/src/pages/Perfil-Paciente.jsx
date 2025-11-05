@@ -311,7 +311,6 @@ function PatientProfilePage() {
                 </Box>
               </Paper>
 
-              {/* Tarjeta de Documentos/Análisis (Aún con datos de ejemplo) */}
               <Paper
                 elevation={3}
                 sx={{ p: 4, borderRadius: 2, background: 'rgba(255, 255, 255, 0.98)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)', position: 'relative' }}
@@ -336,7 +335,6 @@ function PatientProfilePage() {
         </Grid>
       </Container>
 
-      {/* Diálogos (sin cambios) */}
       <Dialog open={openCalendar} onClose={() => setOpenCalendar(false)}>
         <DialogTitle>Seleccionar Fecha de Ingreso</DialogTitle>
         <DialogContent>
