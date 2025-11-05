@@ -12,36 +12,33 @@ import { useAuth } from '../context/AuthContext';
 function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, staticNavbar }) {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
-  
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLoginClick = () => {
+  const handleLoginClick = () => navigate('/login');
+  const handleRegisterClick = () => navigate('/register');
+  const handleLogoutClick = () => {
+    logout();
     navigate('/login');
   };
 
-  const handleRegisterClick = () => {
-    navigate('/register');
-  };
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  const handleLogoutClick = () => {
-    logout();
-    navigate('/login'); // Redirige al login después de cerrar sesión
-  };
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  // Determina qué nombre mostrar (si tenemos datos del usuario o un genérico)
-  const displayUserName = user?.email || 'Usuario'; // <-- 4. Usa el nombre del contexto si existe
+  // ✅ Determina qué nombre mostrar (más completo)
+  const displayUserName = user
+    ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || user.email
+    : 'Usuario';
 
   return (
     <>
-      <nav className={`navbar navbar-expand-lg ${transparentNavbar ? 'position-fixed' : 'bg-light position-initial'} ${staticNavbar ? 'position-absolute' : ''}`}>
+      <nav
+        className={`navbar navbar-expand-lg ${
+          transparentNavbar ? 'position-fixed' : 'bg-light position-initial'
+        } ${staticNavbar ? 'position-absolute' : ''}`}
+      >
         <div className="mx-3 container-fluid">
           {/* Logo */}
           <Link className="navbar-brand" to="/">
-            <img className='logo-img' src={logo} alt="Logo" />
+            <img className="logo-img" src={logo} alt="Logo" />
           </Link>
 
           {/* Botón de colapso */}
@@ -67,110 +64,100 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                 <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/image-analysis">Análisis</Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/about">Sobre nosotros</Link> {/* Cambié el / por /about, ajústalo si es diferente */}
+                <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/about">Sobre nosotros</Link>
               </li>
             </ul>
 
-            {/* --- 5. LÓGICA CONDICIONAL: Logueado vs No Logueado --- */}
+            {/* Lógica condicional: logueado vs no logueado */}
             {isAuthenticated ? (
-              // --- SI ESTÁ LOGUEADO ---
               <>
-                <div className='align-items-center'>
-                  {/* Versión para pantallas grandes */}
-                  <div className="d-none d-lg-flex align-items-center justify-content-end">
-                    <div className="order-lg-1 text-end me-2">
-                      <div>Bienvenido</div>
-                      <div className="fw-bold">{displayUserName}</div> {/* Muestra el nombre */}
-                    </div>
-                    <div className="order-lg-1">
-                      <img
-                        src={avatar} // Podrías usar user?.avatar si tuvieras esa info
-                        alt="Perfil"
-                        className="rounded-circle"
-                        width="50"
-                        height="50"
-                      />
-                    </div>
-                    <div className="order-lg-2 dropdown">
-                      <button
-                        onClick={toggleMenu}
-                        aria-expanded={menuOpen}
-                        data-bs-toggle="dropdown"
-                        id="userDropdown"
-                        className="nav-link p-0 d-flex align-items-center bg-transparent border-0"
-                      >
-                        <i className={`bi ms-1 ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`}></i>
-                      </button>
-                      <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><Link className="dropdown-item" to='/perfil-page'>Mi Perfil</Link></li>
-                        <li><Link className='dropdown-item' to='/Main-Loggin'>Buscar paciente</Link></li> {/* Ajusta esta ruta si es necesario */}
-                        <li><Link className='dropdown-item' to='/image-analysis'>Análisis de imagenes</Link></li>
-                        <li><Link className='dropdown-item' to='/Comenzar-Analisis'>Comenzar Análisis</Link></li>
-                        <li><hr className="dropdown-divider" /></li>
-                        {/* Botón de Cerrar Sesión */}
-                        <li><button className="dropdown-item" onClick={handleLogoutClick}>Cerrar Sesión</button></li>
-                      </ul>
-                    </div>
+                {/* --- Pantallas grandes --- */}
+                <div className="d-none d-lg-flex align-items-center justify-content-end">
+                  <div className="order-lg-1 text-end me-2">
+                    <div>Bienvenido</div>
+                    <div className="fw-bold">{displayUserName}</div>
+                  </div>
+                  <div className="order-lg-1">
+                    <img
+                      src={avatar}
+                      alt="Perfil"
+                      className="rounded-circle"
+                      width="50"
+                      height="50"
+                    />
+                  </div>
+                  <div className="order-lg-2 dropdown">
+                    <button
+                      onClick={toggleMenu}
+                      aria-expanded={menuOpen}
+                      data-bs-toggle="dropdown"
+                      id="userDropdown"
+                      className="nav-link p-0 d-flex align-items-center bg-transparent border-0"
+                    >
+                      <i className={`bi ms-1 ${menuOpen ? 'bi-caret-up-fill' : 'bi-caret-down-fill'}`}></i>
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                      <li><Link className="dropdown-item" to="/perfil-page">Mi Perfil</Link></li>
+                      <li><Link className="dropdown-item" to="/itinerariesSaved">Buscar paciente</Link></li>
+                      <li><Link className="dropdown-item" to="/image-analysis">Análisis de imágenes</Link></li>
+                      <li><Link className="dropdown-item" to="/Comenzar-Analisis">Comenzar Análisis</Link></li>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li><button className="dropdown-item" onClick={handleLogoutClick}>Cerrar Sesión</button></li>
+                    </ul>
                   </div>
                 </div>
 
-                {/* Versión para pantallas pequeñas (Logueado) */}
-                <div className='d-lg-none'>
-                  <hr className="my-3"></hr>
-                  <ul className=" d-flex navbar-nav me-auto mb-2 mb-lg-0">
+                {/* --- Pantallas pequeñas --- */}
+                <div className="d-lg-none">
+                  <hr className="my-3" />
+                  <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                      <span className={`nav-link fw-bold ${lightLink ? 'blanco' : ''}`}>Hola, {displayUserName}</span>
+                      <span className={`nav-link fw-bold ${lightLink ? 'blanco' : ''}`}>
+                        Hola, {displayUserName}
+                      </span>
                     </li>
-                    <li className="nav-item">
-                      <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/perfil-page'>Mi Perfil</Link>
-                    </li>
-                     <li className="nav-item">
-                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/itinerariesSaved'>Buscar paciente</Link>
-                    </li>
-                     <li className="nav-item">
-                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/image-analysis'>Análisis de imagenes</Link>
-                    </li>
-                     <li className="nav-item">
-                       <Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to='/Comenzar-Analisis'>Comenzar Análisis</Link>
-                    </li>
-                    {/* ... (otros enlaces específicos para usuarios logueados en móvil) ... */}
-                    <li className="nav-item">
-                      <hr className="dropdown-divider" />
-                    </li>
-                    <li className="nav-item">
-                      <button className={`nav-link btn btn-link ${lightLink ? 'blanco' : ''}`} onClick={handleLogoutClick}>Cerrar Sesión</button>
+                    <li><Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/perfil-page">Mi Perfil</Link></li>
+                    <li><Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/itinerariesSaved">Buscar paciente</Link></li>
+                    <li><Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/image-analysis">Análisis de imágenes</Link></li>
+                    <li><Link className={`nav-link ${lightLink ? 'blanco' : ''}`} to="/Comenzar-Analisis">Comenzar Análisis</Link></li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button
+                        className={`nav-link btn btn-link ${lightLink ? 'blanco' : ''}`}
+                        onClick={handleLogoutClick}
+                      >
+                        Cerrar Sesión
+                      </button>
                     </li>
                   </ul>
                 </div>
               </>
             ) : (
-              // --- SI NO ESTÁ LOGUEADO ---
               <>
                 {showingresa && (
                   <Box>
                     <ButtonsMod
-                      variant='secundario'
-                      textCont='Ingresa'
-                      width='6rem'
-                      height='2.rem' // Corregí el '2.rem'
+                      variant="secundario"
+                      textCont="Ingresa"
+                      width="6rem"
+                      height="2.rem"
                       clickEvent={handleLoginClick}
                     />
                   </Box>
                 )}
                 {showRegistrate && (
-                  <Box className='ms-1'>
+                  <Box className="ms-1">
                     <ButtonsMod
-                      variant='principal'
-                      textCont='Regístrate'
-                      width='6rem'
-                      height='2.rem' // Corregí el '2.rem'
+                      variant="principal"
+                      textCont="Regístrate"
+                      width="6rem"
+                      height="2.rem"
                       clickEvent={handleRegisterClick}
                     />
                   </Box>
                 )}
               </>
             )}
-            {/* --- FIN LÓGICA CONDICIONAL --- */}
           </div>
         </div>
       </nav>
