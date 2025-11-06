@@ -101,6 +101,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                       <li><Link className="dropdown-item" to="/itinerariesSaved">Buscar paciente</Link></li>
                       <li><Link className="dropdown-item" to="/image-analysis">Análisis de imágenes</Link></li>
                       <li><Link className="dropdown-item" to="/Comenzar-Analisis">Comenzar Análisis</Link></li>
+                      <li><Link className="dropdown-item" to="/Main-Loggin">Mis pacientes</Link></li>
                       <li><hr className="dropdown-divider" /></li>
                       <li><button className="dropdown-item" onClick={handleLogoutClick}>Cerrar Sesión</button></li>
                     </ul>

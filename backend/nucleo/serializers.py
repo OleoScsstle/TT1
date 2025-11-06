@@ -124,6 +124,7 @@ class PacienteSerializer(serializers.ModelSerializer):
             'estado',
             'historial_medico',
             'imagen_perfil',
+            #'fecha_ingreso',
             'esp_encargado',
         ]
         extra_kwargs = {

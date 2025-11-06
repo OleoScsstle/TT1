@@ -1,10 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-<<<<<<< HEAD
-from .views import MedicoCreateView
-from .views import MedicoCreateView, UserProfileView, PasswordResetRequestView, PasswordResetConfirmView, PacienteViewSet
-=======
-from rest_framework.routers import DefaultRouter
+
 from .views import (
     MedicoCreateView,
     UserProfileView,
@@ -12,7 +8,7 @@ from .views import (
     PasswordResetConfirmView,
     PacienteViewSet
 )
->>>>>>> c6239f824d8a35d87d730ad1efdb6601791d2a18
+
 
 router = DefaultRouter()
 router.register(r'pacientes', PacienteViewSet, basename='paciente')

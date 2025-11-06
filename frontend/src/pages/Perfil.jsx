@@ -28,12 +28,19 @@ const Perfil = () => {
     );
   }
 
-  // ✅ Generamos el nombre completo igual que en el NavBar
+  // --- 📦 Extraemos datos del perfil médico (si existen)
+  const medico = user.medico_perfil || {};
+
+  // --- 🧠 Generamos el nombre completo
   const nombreCompleto =
-    `${user.first_name || user.nombre || ''} ${user.last_name || user.apellido || ''}`.trim() ||
+    `${user.first_name || medico.nombre || ''} ${user.last_name || medico.apellido || ''}`.trim() ||
     user.username ||
     user.email ||
     'Usuario';
+
+  // --- 📧 Determinamos correo y cédula
+  const correo = user.email || medico.correo || 'Sin correo registrado';
+  const cedula = medico.cedula || 'Sin especificar';
 
   return (
     <ThemeProvider theme={ThemeMaterialUI}>
@@ -56,17 +63,17 @@ const Perfil = () => {
               user.avatar ||
               'https://upload.wikimedia.org/wikipedia/commons/4/41/Siberischer_tiger_de_edit02.jpg'
             }
-            numeroPacientes={user.numeroPacientes || 46}
-            analisisRealizados={user.analisisRealizados || 23}
+            numeroPacientes={medico.numeroPacientes || 46}
+            analisisRealizados={medico.analisisRealizados || 23}
           />
 
           {/* Información personal */}
           <InformacionPersonal
-            correoElectronico={user.email || user.correo}
-            nombre={user.first_name || user.nombre || ''}
-            apellido={user.last_name || user.apellido || ''}
+            correoElectronico={correo}
+            nombre={user.first_name || medico.nombre || ''}
+            apellido={user.last_name || medico.apellido || ''}
             fechaNacimiento={user.fecha_nacimiento || null}
-            cedula={user.cedula || 'Sin especificar'}
+            cedula={cedula}
           />
         </Container>
 
