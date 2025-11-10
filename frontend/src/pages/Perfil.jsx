@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NavBarHome from '../components/NavBar';
 import Footer from '../components/Footer';
 
@@ -10,15 +10,18 @@ import InformacionPersonal from '../components/perfil/InformacionPersonal';
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
 import '../css/Perfil.css';
 
-import { Container } from '@mui/material';
+import { Container, Alert } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { Box } from '@mui/system';
 
 // ✅ Importamos el contexto de autenticación
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Perfil = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
+  const [mensaje, setMensaje] = useState('');
+  const [error, setError] = useState('');
 
   if (!isAuthenticated || !user) {
     return (
@@ -41,6 +44,33 @@ const Perfil = () => {
   // --- 📧 Determinamos correo y cédula
   const correo = user.email || medico.correo || 'Sin correo registrado';
   const cedula = medico.cedula || 'Sin especificar';
+
+  // --- 🧩 Función para actualizar datos del médico (llamada desde InformacionPersonal)
+  const handleActualizarMedico = async (datosActualizados) => {
+    try {
+      setMensaje('');
+      setError('');
+      const response = await axios.patch(
+        'http://127.0.0.1:8000/api/medico/update/',
+        datosActualizados,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setMensaje('✅ Datos actualizados correctamente');
+      } else {
+        setError('No se pudieron actualizar los datos.');
+      }
+    } catch (err) {
+      console.error('Error al actualizar el médico:', err);
+      setError('Ocurrió un error al intentar actualizar los datos.');
+    }
+  };
 
   return (
     <ThemeProvider theme={ThemeMaterialUI}>
@@ -67,14 +97,18 @@ const Perfil = () => {
             analisisRealizados={medico.analisisRealizados || 23}
           />
 
-          {/* Información personal */}
+          {/* Información personal con función de actualización */}
           <InformacionPersonal
             correoElectronico={correo}
             nombre={user.first_name || medico.nombre || ''}
             apellido={user.last_name || medico.apellido || ''}
             fechaNacimiento={user.fecha_nacimiento || null}
             cedula={cedula}
+            onActualizar={handleActualizarMedico} // 👈 le pasamos la función
           />
+
+          {mensaje && <Alert severity="success" sx={{ mt: 3 }}>{mensaje}</Alert>}
+          {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
         </Container>
 
         <Footer showIncorporaLugar={false} />

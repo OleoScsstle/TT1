@@ -3,6 +3,7 @@ from django.urls import path, include
 
 from .views import (
     MedicoCreateView,
+    MedicoUpdateView,
     UserProfileView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
@@ -19,5 +20,7 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user_profile'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('medico/update/', MedicoUpdateView.as_view(), name='medico_update'),
+
     path('', include(router.urls)),
 ]

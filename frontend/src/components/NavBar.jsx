@@ -74,7 +74,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                 {/* --- Pantallas grandes --- */}
                 <div className="d-none d-lg-flex align-items-center justify-content-end">
                   <div className="order-lg-1 text-end me-2">
-                    <div>Bienvenido</div>
+                    <div>Bienvenido {user.first_name}</div>
                     <div className="fw-bold">{displayUserName}</div>
                   </div>
                   <div className="order-lg-1">
