@@ -10,48 +10,96 @@ import InformacionPersonal from '../components/perfil/InformacionPersonal';
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
 import '../css/Perfil.css';
 
-import { Container, Alert } from '@mui/material';
+// --- Importaciones Clave ---
+import { Container, Alert, CircularProgress } from '@mui/material'; // <-- Añade CircularProgress
 import { ThemeProvider } from '@mui/material/styles';
 import { Box } from '@mui/system';
-
-// ✅ Importamos el contexto de autenticación
 import { useAuth } from '../context/AuthContext';
+import dayjs from 'dayjs'; // <-- Importa dayjs
 import axios from 'axios';
 
 const Perfil = () => {
-  const { user, isAuthenticated, token } = useAuth();
+  const { user, isAuthenticated, token, isLoading } = useAuth(); // <-- Obtén 'isLoading'
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
 
-  if (!isAuthenticated || !user) {
+  // --- 1. Muestra "Cargando..." mientras el AuthContext está verificando al usuario ---
+  if (isLoading) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <p>No se encontró información del usuario o no has iniciado sesión.</p>
-      </div>
+      <ThemeProvider theme={ThemeMaterialUI}>
+        <div className="layout-page">
+          <NavBarHome /* ...props... */ />
+          <Container maxWidth="lg" sx={{ my: 6, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Container>
+          <Footer showIncorporaLugar={false} />
+        </div>
+      </ThemeProvider>
     );
   }
 
-  // --- 📦 Extraemos datos del perfil médico (si existen)
-  const medico = user.medico_perfil || {};
+  // --- 2. Muestra error si no está logueado o no es un usuario válido ---
+  if (!isAuthenticated || !user) {
+    return (
+      <ThemeProvider theme={ThemeMaterialUI}>
+        <div className="layout-page">
+          <NavBarHome /* ...props... */ />
+          <Container maxWidth="lg" sx={{ my: 6 }}>
+            <Alert severity="error">No has iniciado sesión o no se pudo cargar tu perfil.</Alert>
+          </Container>
+          <Footer showIncorporaLugar={false} />
+        </div>
+      </ThemeProvider>
+    );
+  }
 
-  // --- 🧠 Generamos el nombre completo
-  const nombreCompleto =
-    `${user.first_name || medico.nombre || ''} ${user.last_name || medico.apellido || ''}`.trim() ||
-    user.username ||
-    user.email ||
-    'Usuario';
+  // --- 3. Muestra error si es un usuario (ej. Admin) sin perfil de médico ---
+  if (!user.medico_perfil) {
+     return (
+      <ThemeProvider theme={ThemeMaterialUI}>
+        <div className="layout-page">
+          <NavBarHome /* ...props... */ />
+          <Container maxWidth="lg" sx={{ my: 6 }}>
+            <Alert severity="error">Este perfil solo está disponible para médicos.</Alert>
+          </Container>
+          <Footer showIncorporaLugar={false} />
+        </div>
+      </ThemeProvider>
+    );
+  }
 
-  // --- 📧 Determinamos correo y cédula
+  // --- 4. Si todo está bien, extraemos los datos ---
+  const medico = user.medico_perfil;
+
+  const nombreCompleto = `${medico.nombre} ${medico.apellido}`.trim() || user.username;
   const correo = user.email || medico.correo || 'Sin correo registrado';
   const cedula = medico.cedula || 'Sin especificar';
-
-  // --- 🧩 Función para actualizar datos del médico (llamada desde InformacionPersonal)
+  const celular = medico.telefono || ''; // 'celular' en InformacionPersonal espera esto
+  const fechaNacimiento = medico.fecha_nacimiento || null;
+  // --- 5. Tu función de actualización (ya es correcta) ---
   const handleActualizarMedico = async (datosActualizados) => {
     try {
       setMensaje('');
       setError('');
+
+      /* Formatea la fecha antes de enviarla si cambió
+      if (datosActualizados.fechaNacimiento) {
+        datosActualizados.fecha_nacimiento = dayjs(datosActualizados.fechaNacimiento, 'DD-MM-YYYY').format('YYYY-MM-DD');
+        delete datosActualizados.fechaNacimiento; // Renombra la clave
+      }*/
+      if (datosActualizados.fechaNacimiento) {
+          datosActualizados.fecha_nacimiento = datosActualizados.fechaNacimiento;
+          delete datosActualizados.fechaNacimiento;
+      }
+      
+      // Renombra 'celular' a 'telefono' para el backend
+      if (datosActualizados.celular) {
+          datosActualizados.telefono = datosActualizados.celular;
+          delete datosActualizados.celular;
+      }
+
       const response = await axios.patch(
-        'http://127.0.0.1:8000/api/medico/update/',
+        'http://127.0.0.1:8000/api/medico/update/', // Esta URL es correcta
         datosActualizados,
         {
           headers: {
@@ -62,13 +110,15 @@ const Perfil = () => {
       );
 
       if (response.status === 200) {
-        setMensaje('✅ Datos actualizados correctamente');
+        setMensaje('✅ Datos actualizados correctamente. (Refresca la página para ver los cambios)');
+        // Opcional: podrías actualizar el 'user' en AuthContext aquí
       } else {
         setError('No se pudieron actualizar los datos.');
       }
     } catch (err) {
-      console.error('Error al actualizar el médico:', err);
-      setError('Ocurrió un error al intentar actualizar los datos.');
+      console.error('Error al actualizar el médico:', err.response?.data);
+      const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : 'Ocurrió un error.';
+      setError(`Error: ${errorMsg}`);
     }
   };
 
@@ -76,8 +126,8 @@ const Perfil = () => {
     <ThemeProvider theme={ThemeMaterialUI}>
       <div className="layout-page">
         <NavBarHome
-          showingresa={true}
-          showRegistrate={true}
+          showingresa={false} // Ocultamos botones porque ya está logueado
+          showRegistrate={false}
           transparentNavbar={false}
           lightLink={false}
         />
@@ -90,21 +140,21 @@ const Perfil = () => {
           <InformacionHeader
             nombreUsuario={nombreCompleto}
             avatar={
-              user.avatar ||
-              'https://upload.wikimedia.org/wikipedia/commons/4/41/Siberischer_tiger_de_edit02.jpg'
+              'https://upload.wikimedia.org/wikipedia/commons/4/41/Siberischer_tiger_de_edit02.jpg' // Avatar estático por ahora
             }
-            numeroPacientes={medico.numeroPacientes || 46}
-            analisisRealizados={medico.analisisRealizados || 23}
+            numeroPacientes={0} // TODO: Cargar esto desde la API
+            analisisRealizados={0} // TODO: Cargar esto desde la API
           />
 
           {/* Información personal con función de actualización */}
           <InformacionPersonal
             correoElectronico={correo}
-            nombre={user.first_name || medico.nombre || ''}
-            apellido={user.last_name || medico.apellido || ''}
-            fechaNacimiento={user.fecha_nacimiento || null}
+            nombre={medico.nombre || ''}
+            apellido={medico.apellido || ''}
+            fechaNacimiento={fechaNacimiento} // Formato DD-MM-YYYY o null
+            celular={celular}
             cedula={cedula}
-            onActualizar={handleActualizarMedico} // 👈 le pasamos la función
+            onSave={handleActualizarMedico} // <-- Tu componente espera 'onSave'
           />
 
           {mensaje && <Alert severity="success" sx={{ mt: 3 }}>{mensaje}</Alert>}

@@ -183,7 +183,7 @@ function InformacionPersonal({
       setFechaError(false);
       setFechaHelperText('');
     }
-    setFormData((p) => ({ ...p, fechaNacimiento: nuevaFecha.format('DD-MM-YYYY') }));
+    setFormData((p) => ({ ...p, fechaNacimiento: nuevaFecha.format('YYYY-MM-DD') }));
   };
 
   const isFormValid = () => {
@@ -318,7 +318,7 @@ function InformacionPersonal({
                   <DatePicker
                     sx={{ width: '100%' }}
                     format="DD-MM-YYYY"
-                    value={formData.fechaNacimiento ? dayjs(formData.fechaNacimiento, 'DD-MM-YYYY') : null}
+                    value={formData.fechaNacimiento ? dayjs(formData.fechaNacimiento) : null}
                     maxDate={dayjs().subtract(18, 'year')}
                     minDate={dayjs().subtract(65, 'year')}
                     onChange={handleFechaNacimientoChange}

@@ -83,9 +83,9 @@ WSGI_APPLICATION = 'mi_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tt2db',
+        'NAME': 'TT_DB_SistemaReconocimiento',
         'USER': 'admin',
-        'PASSWORD': 'admin123',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
     }

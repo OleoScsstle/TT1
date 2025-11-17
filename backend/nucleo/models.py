@@ -23,6 +23,7 @@ class Medico(models.Model):
     cedula = models.CharField(max_length=50, unique=True)
 
     especialidad = models.CharField(max_length=100)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
     
     ESTADO_VALIDACION_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
@@ -55,7 +56,7 @@ class Paciente(models.Model):
     telefono = models.CharField(max_length=20, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
     fecha_nac = models.DateField()
-    #fecha_ingreso = models.DateField(null=True, blank=True)
+    fecha_ingreso = models.DateField(auto_now_add=True, null=True, blank=True)
 
     SEXO_CHOICES = [
         ('M', 'Masculino'),

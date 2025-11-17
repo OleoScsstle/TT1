@@ -9,13 +9,18 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Medico, Administrador, Paciente
+from rest_framework import serializers # <-- Importante para la validación
+
+# Asegúrate de importar TODOS los modelos que usas
+from .models import Medico, Administrador, Paciente 
+
 from .serializers import (
     MedicoSerializer,
-    UserSerializer,
+    UserSerializer, # El serializer que ya contiene el perfil del médico
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
     PacienteSerializer,
+    MedicoUpdateSerializer # El serializer específico para actualizar
 )
 
 # ===============================
@@ -28,26 +33,19 @@ class MedicoCreateView(generics.CreateAPIView):
 
 
 # ===============================
-# 🔹 PERFIL DE USUARIO AUTENTICADO
+# 🔹 PERFIL DE USUARIO AUTENTICADO (¡CORREGIDO!)
 # ===============================
 class UserProfileView(APIView):
+    """
+    Vista para obtener los datos del usuario actualmente logueado.
+    Usa UserSerializer, que ya incluye el MedicoProfileSerializer anidado.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-
-        # Verificamos si el usuario tiene perfil de médico
-        medico_data = None
-        if hasattr(user, 'medico_perfil'):
-            medico_data = MedicoSerializer(user.medico_perfil).data
-
-        # Serializamos los datos del usuario
-        user_data = UserSerializer(user).data
-
-        return Response({
-            "user": user_data,
-            "medico_perfil": medico_data
-        })
+        # UserSerializer (de serializers.py) se encarga de todo
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 # ===============================
@@ -79,9 +77,9 @@ class PasswordResetRequestView(generics.GenericAPIView):
 
         try:
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
-            print(f"Correo de restablecimiento simulado para {user.email}")
+            # print(f"Correo de restablecimiento enviado a {user.email}") # Opcional
         except Exception as e:
-            print(f"Error simulando envío de correo: {e}")
+            # print(f"Error enviando correo: {e}") # Opcional
             return Response({"detail": "Error al procesar la solicitud."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(
@@ -141,37 +139,27 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
 
 # ===============================
-# 🔹 ACTUALIZAR PERFIL DE MÉDICO
+# 🔹 ACTUALIZAR PERFIL DE MÉDICO (¡CORREGIDO!)
 # ===============================
-class MedicoUpdateView(APIView):
+# Reemplazamos tu MedicoUpdateView por esta, que usa la lógica correcta de DRF
+class MedicoProfileUpdateView(generics.RetrieveUpdateAPIView):
+    """
+    Permite al médico logueado ver (GET) y
+    actualizar (PATCH) su propio perfil.
+    """
+    serializer_class = MedicoUpdateSerializer # <-- Usa el serializer de ACTUALIZACIÓN
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request):
-        user = request.user
+    def get_object(self):
+        # Devuelve el perfil de médico del usuario logueado
+        if hasattr(self.request.user, 'medico_perfil'):
+            return self.request.user.medico_perfil
+        return None # Opcional: raise Http404 si prefieres
+            
+    def get(self, request, *args, **kwargs):
+        # Maneja peticiones GET
+        return self.retrieve(request, *args, **kwargs)
 
-        if not hasattr(user, 'medico_perfil'):
-            return Response(
-                {"detail": "El usuario autenticado no tiene perfil de médico."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        medico = user.medico_perfil
-
-        nombre = request.data.get('nombre')
-        apellido = request.data.get('apellido')
-
-        if nombre:
-            user.first_name = nombre
-        if apellido:
-            user.last_name = apellido
-        user.save()
-
-        serializer = MedicoSerializer(medico, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"detail": "Perfil actualizado correctamente.", "medico": serializer.data},
-                status=status.HTTP_200_OK
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request, *args, **kwargs):
+        # Maneja peticiones PATCH (actualización parcial)
+        return self.partial_update(request, *args, **kwargs)
