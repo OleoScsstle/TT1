@@ -2,6 +2,8 @@ from rest_framework import generics, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.decorators import action 
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -20,7 +22,8 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
     PacienteSerializer,
-    MedicoUpdateSerializer # El serializer específico para actualizar
+    MedicoUpdateSerializer, # El serializer específico para actualizar
+    MedicoProfileSerializer
 )
 
 # ===============================
@@ -163,3 +166,42 @@ class MedicoProfileUpdateView(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         # Maneja peticiones PATCH (actualización parcial)
         return self.partial_update(request, *args, **kwargs)
+
+class AdminMedicoViewSet(viewsets.ModelViewSet):
+    """
+    Permite al administrador ver médicos.
+    Soporta filtrar por estado: ?estado=PENDIENTE o ?estado=APROBADO
+    """
+    serializer_class = MedicoProfileSerializer
+    permission_classes = [IsAdminUser] # Solo admins
+
+    def get_queryset(self):
+        # Obtenemos el parámetro 'estado' de la URL
+        estado = self.request.query_params.get('estado')
+        
+        # Si nos piden un estado específico (ej. APROBADO), filtramos por eso
+        if estado:
+            return Medico.objects.filter(estado_validacion=estado)
+        
+        # Si no especifican nada, devolvemos todos (o podrías dejar PENDIENTE por defecto)
+        return Medico.objects.all()
+
+    @action(detail=True, methods=['patch'])
+    def validar(self, request, pk=None):
+        # ... (esta función se queda igual que antes) ...
+        medico = self.get_object()
+        nuevo_estado = request.data.get('estado')
+        if nuevo_estado in ['APROBADO', 'RECHAZADO']:
+            medico.estado_validacion = nuevo_estado
+            medico.save()
+            return Response({'detail': f'Médico {nuevo_estado.lower()} con éxito.'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Estado inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# 2. AÑADIMOS ESTA NUEVA CLASE
+class AdminPacienteViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Vista de solo lectura para que el admin vea TODOS los pacientes del sistema.
+    """
+    queryset = Paciente.objects.all().order_by('-id') # Ordenados por el más reciente
+    serializer_class = PacienteSerializer
+    permission_classes = [IsAdminUser]

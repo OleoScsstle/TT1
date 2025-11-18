@@ -6,7 +6,7 @@ import PlacePage from '../pages/PlacePage';
 import DeseadosPage from '../pages/DeseadosPage';
 import FavoritesPage from '../pages/FavoritesPage';
 import Itinerary from '../pages/ItineraryPage';
-import ItinerariesSavedPage from '../pages/ItinerariesSavedPage';
+//import ItinerariesSavedPage from '../pages/ItinerariesSavedPage';
 import TerminosCondiciones from '../pages/TerminosCondiciones';
 import PoliticasPrivacidad from '../pages/PoliticasPrivacidad';
 import ConfirmacionRegistro from '../pages/ConfirmacionRegistro';
@@ -15,7 +15,7 @@ import GenerarItinerario from '../pages/GenerarItinerario';
 import CategoriasPage from '../pages/Categorias';
 import ResumePage from '../pages/ResumenPage';
 import RegisterPacientPage from '../pages/RegisterPacientPage'; 
-import AdminPage from '../pages/Administrador'; 
+//import AdminPage from '../pages/Administrador'; 
 import AdminPagePlaces from '../pages/AdministradorLugares'; 
 import Perfil from '../pages/Perfil';
 import Alcaldias from '../pages/AlcaldiasTotales';
@@ -28,6 +28,7 @@ import AdminSavedPlaces from '../pages/AdminSavedPlaces';
 import ComenzarAnalisisPages from '../pages/comenzarAnalisisPage';
 import MainPageLoggin from '../pages/Main-Loggin';  
 import PerfilPaciente from '../pages/Perfil-Paciente';
+import AdminPage from '../pages/AdminPage';
 
 
 function AppRouter() {
@@ -40,7 +41,7 @@ function AppRouter() {
         <Route path='/deseados' element={<DeseadosPage />} />
         <Route path='/favoritos' element={<FavoritesPage />} />
         <Route path='/itinerary' element={<Itinerary />} />
-        <Route path='/itinerariesSaved' element={<ItinerariesSavedPage/>} />
+        {/*<Route path='/itinerariesSaved' element={<ItinerariesSavedPage/>} />*/}
         <Route path='/HistoryPage' element={<HistorialBusqueda/>} />
         <Route path='/Categorias-page' element={<CategoriasPage/>} />
         <Route path='/terminos-condiciones' element={<TerminosCondiciones />} />
@@ -63,6 +64,7 @@ function AppRouter() {
         <Route path='/Main-Loggin' element={<MainPageLoggin/>}/>
         <Route path='/perfil-paciente/:id' element={<PerfilPaciente />} />
         <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena/>} />
+        <Route path='/admin/dashboard' element={<AdminPage />} />
       </Routes>
     </Router>
   );

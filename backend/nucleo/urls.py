@@ -7,12 +7,16 @@ from .views import (
     UserProfileView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    PacienteViewSet
+    PacienteViewSet,
+    AdminMedicoViewSet,
+    AdminPacienteViewSet
 )
 
 
 router = DefaultRouter()
 router.register(r'pacientes', PacienteViewSet, basename='paciente')
+router.register(r'admin/medicos', AdminMedicoViewSet, basename='admin-medicos')
+router.register(r'admin/pacientes', AdminPacienteViewSet, basename='admin-pacientes')
 
 urlpatterns = [
     path('register/', MedicoCreateView.as_view(), name='register_medico'),  # 👈 viejo alias
@@ -21,6 +25,5 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('medico/update/', MedicoProfileUpdateView.as_view(), name='medico_update'),
-
     path('', include(router.urls)),
 ]

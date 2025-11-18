@@ -56,6 +56,7 @@ class MedicoProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medico
         fields = [
+            'id',
             'nombre', 
             'apellido', 
             'cedula', 
