@@ -1,105 +1,99 @@
-import React, { useState } from 'react';
-import NavBarHome from '../components/NavBar';
-import Footer from '../components/Footer';
-
-// componentes
-import InformacionHeader from '../components/perfil/InformacionHeader';
-import InformacionPersonal from '../components/perfil/InformacionPersonal';
-
-// estilos
-import ThemeMaterialUI from '../components/ThemeMaterialUI';
-import '../css/Perfil.css';
-
-// --- Importaciones Clave ---
-import { Container, Alert, CircularProgress } from '@mui/material'; // <-- Añade CircularProgress
-import { ThemeProvider } from '@mui/material/styles';
-import { Box } from '@mui/system';
-import { useAuth } from '../context/AuthContext';
-import dayjs from 'dayjs'; // <-- Importa dayjs
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, Alert, CircularProgress, Grid, Paper, Box, Typography, Avatar, Divider, Stack, Chip
+} from '@mui/material';
+import { 
+  MedicalServices as MedicalServicesIcon, 
+  Groups as GroupsIcon, 
+  Assignment as AssignmentIcon 
+} from '@mui/icons-material';
 import axios from 'axios';
 
+// Componentes
+import InformacionPersonal from '../components/perfil/InformacionPersonal';
+import Layout from '../components/Layout'; 
+import { useAuth } from '../context/AuthContext';
+
 const Perfil = () => {
-  const { user, isAuthenticated, token, isLoading } = useAuth(); // <-- Obtén 'isLoading'
+  const { user, isAuthenticated, token, isLoading } = useAuth();
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+  
+  const [pacientesCount, setPacientesCount] = useState(0);
 
-  // --- 1. Muestra "Cargando..." mientras el AuthContext está verificando al usuario ---
+  useEffect(() => {
+    const fetchEstadisticas = async () => {
+      if (token) {
+        try {
+          const response = await axios.get('http://localhost:8000/api/pacientes/', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setPacientesCount(response.data.length);
+        } catch (err) {
+          console.error("Error cargando estadísticas:", err);
+        }
+      }
+    };
+    fetchEstadisticas();
+  }, [token]);
+
   if (isLoading) {
     return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <div className="layout-page">
-          <NavBarHome /* ...props... */ />
-          <Container maxWidth="lg" sx={{ my: 6, display: 'flex', justifyContent: 'center' }}>
-            <CircularProgress />
-          </Container>
-          <Footer showIncorporaLugar={false} />
-        </div>
-      </ThemeProvider>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} color="primary" />
+      </Box>
     );
   }
 
-  // --- 2. Muestra error si no está logueado o no es un usuario válido ---
   if (!isAuthenticated || !user) {
     return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <div className="layout-page">
-          <NavBarHome /* ...props... */ />
-          <Container maxWidth="lg" sx={{ my: 6 }}>
-            <Alert severity="error">No has iniciado sesión o no se pudo cargar tu perfil.</Alert>
-          </Container>
-          <Footer showIncorporaLugar={false} />
-        </div>
-      </ThemeProvider>
+      <Layout>
+        <Container sx={{ mt: 4 }}><Alert severity="error">No has iniciado sesión.</Alert></Container>
+      </Layout>
     );
   }
 
-  // --- 3. Muestra error si es un usuario (ej. Admin) sin perfil de médico ---
-  if (!user.medico_perfil) {
+  if (!user.medico_perfil && !user.is_staff) {
      return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <div className="layout-page">
-          <NavBarHome /* ...props... */ />
-          <Container maxWidth="lg" sx={{ my: 6 }}>
-            <Alert severity="error">Este perfil solo está disponible para médicos.</Alert>
-          </Container>
-          <Footer showIncorporaLugar={false} />
-        </div>
-      </ThemeProvider>
+      <Layout>
+        <Container sx={{ mt: 4 }}><Alert severity="warning">Este perfil no tiene datos médicos asociados.</Alert></Container>
+      </Layout>
     );
   }
 
-  // --- 4. Si todo está bien, extraemos los datos ---
-  const medico = user.medico_perfil;
-
-  const nombreCompleto = `${medico.nombre} ${medico.apellido}`.trim() || user.username;
-  const correo = user.email || medico.correo || 'Sin correo registrado';
+  const medico = user.medico_perfil || {}; 
+  
+  const nombreCompleto = medico.nombre 
+    ? `${medico.nombre} ${medico.apellido}` 
+    : user.first_name ? `${user.first_name} ${user.last_name}` : user.username;
+    
+  const inicial = nombreCompleto.charAt(0).toUpperCase();
+  
+  // --- DATOS A PASAR AL FORMULARIO ---
+  const correo = user.email || medico.correo || 'Sin correo';
   const cedula = medico.cedula || 'Sin especificar';
-  const celular = medico.telefono || ''; // 'celular' en InformacionPersonal espera esto
+  const celular = medico.telefono || '';
+  const direccion = medico.direccion || ''; // <--- AGREGADO
   const fechaNacimiento = medico.fecha_nacimiento || null;
-  // --- 5. Tu función de actualización (ya es correcta) ---
+  const especialidad = medico.especialidad || 'Médico Especialista';
+
   const handleActualizarMedico = async (datosActualizados) => {
     try {
       setMensaje('');
       setError('');
 
-      /* Formatea la fecha antes de enviarla si cambió
-      if (datosActualizados.fechaNacimiento) {
-        datosActualizados.fecha_nacimiento = dayjs(datosActualizados.fechaNacimiento, 'DD-MM-YYYY').format('YYYY-MM-DD');
-        delete datosActualizados.fechaNacimiento; // Renombra la clave
-      }*/
+      // Pequeños ajustes de formato antes de enviar
       if (datosActualizados.fechaNacimiento) {
           datosActualizados.fecha_nacimiento = datosActualizados.fechaNacimiento;
-          delete datosActualizados.fechaNacimiento;
       }
-      
-      // Renombra 'celular' a 'telefono' para el backend
       if (datosActualizados.celular) {
           datosActualizados.telefono = datosActualizados.celular;
           delete datosActualizados.celular;
       }
+      // La dirección ya va dentro de datosActualizados tal cual
 
       const response = await axios.patch(
-        'http://127.0.0.1:8000/api/medico/update/', // Esta URL es correcta
+        'http://localhost:8000/api/medico/update/', 
         datosActualizados,
         {
           headers: {
@@ -110,60 +104,89 @@ const Perfil = () => {
       );
 
       if (response.status === 200) {
-        setMensaje('✅ Datos actualizados correctamente. (Refresca la página para ver los cambios)');
-        // Opcional: podrías actualizar el 'user' en AuthContext aquí
-      } else {
-        setError('No se pudieron actualizar los datos.');
+        setMensaje('Datos actualizados correctamente.');
+        setTimeout(() => setMensaje(''), 5000);
       }
     } catch (err) {
-      console.error('Error al actualizar el médico:', err.response?.data);
-      const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : 'Ocurrió un error.';
-      setError(`Error: ${errorMsg}`);
+      console.error('Error update:', err);
+      setError('No se pudieron actualizar los datos. Verifica tu conexión.');
     }
   };
 
   return (
-    <ThemeProvider theme={ThemeMaterialUI}>
-      <div className="layout-page">
-        <NavBarHome
-          showingresa={false} // Ocultamos botones porque ya está logueado
-          showRegistrate={false}
-          transparentNavbar={false}
-          lightLink={false}
-        />
+    <Layout>
+      <Box 
+        sx={{ 
+          height: 180, 
+          background: 'linear-gradient(90deg, #E4007C 0%, #ff66a1 100%)',
+          mb: -8 
+        }} 
+      />
 
-        {/* Cover superior */}
-        <Box className="perfil-usuario-background" />
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Grid container spacing={3}>
+          
+          <Grid item xs={12} md={4}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 2, textAlign: 'center', height: '100%' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Avatar
+                  sx={{ 
+                    width: 120, height: 120, bgcolor: '#bdbdbd', fontSize: 50,
+                    border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                  }}
+                  src={medico.imagen_perfil ? `http://localhost:8000${medico.imagen_perfil}` : ''}
+                >
+                  {inicial}
+                </Avatar>
+              </Box>
 
-        <Container maxWidth="lg" className="md-4 layout-main">
-          {/* Header del perfil del médico */}
-          <InformacionHeader
-            nombreUsuario={nombreCompleto}
-            avatar={
-              'https://upload.wikimedia.org/wikipedia/commons/4/41/Siberischer_tiger_de_edit02.jpg' // Avatar estático por ahora
-            }
-            numeroPacientes={0} // TODO: Cargar esto desde la API
-            analisisRealizados={0} // TODO: Cargar esto desde la API
-          />
+              <Typography variant="h5" fontWeight="bold" gutterBottom>{nombreCompleto}</Typography>
+              <Typography variant="body1" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <MedicalServicesIcon fontSize="small" color="primary"/> {especialidad}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Cédula: {cedula}</Typography>
 
-          {/* Información personal con función de actualización */}
-          <InformacionPersonal
-            correoElectronico={correo}
-            nombre={medico.nombre || ''}
-            apellido={medico.apellido || ''}
-            fechaNacimiento={fechaNacimiento} // Formato DD-MM-YYYY o null
-            celular={celular}
-            cedula={cedula}
-            onSave={handleActualizarMedico} // <-- Tu componente espera 'onSave'
-          />
+              <Divider sx={{ my: 2 }} />
 
-          {mensaje && <Alert severity="success" sx={{ mt: 3 }}>{mensaje}</Alert>}
-          {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
-        </Container>
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f9f9f9', p: 1.5, borderRadius: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <GroupsIcon color="action" /> <Typography variant="body2">Pacientes</Typography>
+                  </Box>
+                  <Chip label={pacientesCount} size="small" color="primary" variant="outlined"/>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f9f9f9', p: 1.5, borderRadius: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AssignmentIcon color="action" /> <Typography variant="body2">Análisis</Typography>
+                  </Box>
+                  <Chip label="0" size="small" color="secondary" variant="outlined"/> 
+                </Box>
+              </Stack>
+            </Paper>
+          </Grid>
 
-        <Footer showIncorporaLugar={false} />
-      </div>
-    </ThemeProvider>
+          <Grid item xs={12} md={8}>
+            {/* Aquí pasamos la prop 'direccion' */}
+            <InformacionPersonal
+              correoElectronico={correo}
+              nombre={medico.nombre || ''}
+              apellido={medico.apellido || ''}
+              fechaNacimiento={fechaNacimiento}
+              celular={celular}
+              cedula={cedula}
+              direccion={direccion} // <--- NUEVO
+              onSave={handleActualizarMedico}
+            />
+
+            <Box sx={{ mt: 2 }}>
+              {mensaje && <Alert severity="success" onClose={() => setMensaje('')}>{mensaje}</Alert>}
+              {error && <Alert severity="error" onClose={() => setError('')}>{error}</Alert>}
+            </Box>
+          </Grid>
+
+        </Grid>
+      </Container>
+    </Layout>
   );
 };
 

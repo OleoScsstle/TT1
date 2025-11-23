@@ -12,9 +12,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers # <-- Importante para la validación
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers_jwt import MyTokenObtainPairSerializer
 
 # Asegúrate de importar TODOS los modelos que usas
-from .models import Medico, Administrador, Paciente 
+from .models import Medico, Administrador, Paciente
 
 from .serializers import (
     MedicoSerializer,
@@ -198,10 +200,15 @@ class AdminMedicoViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Estado inválido.'}, status=status.HTTP_400_BAD_REQUEST)
 
 # 2. AÑADIMOS ESTA NUEVA CLASE
-class AdminPacienteViewSet(viewsets.ReadOnlyModelViewSet):
+class AdminPacienteViewSet(viewsets.ModelViewSet):
     """
-    Vista de solo lectura para que el admin vea TODOS los pacientes del sistema.
+    Permite al admin ver Y ELIMINAR pacientes.
     """
-    queryset = Paciente.objects.all().order_by('-id') # Ordenados por el más reciente
+    queryset = Paciente.objects.all().order_by('-id')
     serializer_class = PacienteSerializer
     permission_classes = [IsAdminUser]
+    
+    http_method_names = ['get', 'delete', 'head', 'options']
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer

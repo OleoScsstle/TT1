@@ -1,154 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import Slider from 'react-slick';
-import NavBarHome from '../components/NavBar';
-import Footer from '../components/Footer';
-import Mapa from '../components/Mapa';
-import PreguntaRegistro from '../components/preguntaRegistro';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import { Container, Box, Typography, Grid } from '@mui/material';
+
+// Componentes
+import Navbar from '../components/NavBar';
+import Footer from '../components/Footer';
+import ThemeMaterialUI from '../components/ThemeMaterialUI';
 import ButtonsMod from '../components/ButtonsMod';
+import PreguntaRegistro from '../components/preguntaRegistro'; // <--- 1. IMPORTAR EL NUEVO COMPONENTE
 
-// import css
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import '../css/HomePage.css';
+// Imágenes
+import screeningImg from '../img/HomePage/ilustracion-mamografia.avif'; 
 
-import CatHome from '../components/categories/CategoryHome';
-import CardAlcaldia from '../components/home/CardAlcaldia';
-import datosTarjetas from '../components/home/datosTarjetas';
-
-const HomePage = () => {
-
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [selectedCards, setSelectedCards] = useState([]);
-
+function HomePage() {
   const navigate = useNavigate();
 
-  const handlePlacePageClick = () => {
+  const handleStartClick = () => {
     navigate('/login');
   };
 
-  const handlePlaceAlcaldiasClick = () => {
-    navigate('/alcaldias');
-  }
-
-
-  const settings = {
-    className: "center",
-    dots: true,
-    centerMode: true,
-    infinite: true,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    centerPadding: "15%",
-    slidesToShow: 1,
-    speed: 1000,
-    responsive: [{
-      breakpoint: 1300,
-      settings: {
-        centerPadding: "20px",
-        slidesToShow: 1,
-        fade: true,
-      }
-    }]
-  };
-
-  //HACER QUE LAS TARJETAS SEAN ALEATORIAS
-  //hace un arreglo con las tarjetas y las desordena para que cuando se muestren en la página sean aleatorias
-  useEffect(() => {
-    const shuffleArray = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-
-    const shuffledCards = shuffleArray([...datosTarjetas]);
-    setSelectedCards(shuffledCards.slice(0, 4));
-  }, []);
-
   return (
-    <div>
-      <NavBarHome
+    <ThemeProvider theme={ThemeMaterialUI}>
+      {/* Navbar controla automáticamente los enlaces */}
+      <Navbar
         showingresa={true}
         showRegistrate={true}
         transparentNavbar={false}
-        lightLink={false} />
+        lightLink={false}
+      />
 
-      <section className='home'>
-        <div className='home-text'>
-          <h5 className='home-h5'>Realiza el próximo<strong> análisis </strong> con nuestro apoyo y con la </h5>
-          <h1 className='home-h1'>Nueva herramienta</h1>
-          <ButtonsMod
-            variant='principal'
-            textCont='Comienza ahora'
-            clickEvent={handlePlacePageClick}
-          />
-        </div>
-      </section>
+      {/* === SECCIÓN HERO (Portada) === */}
+      <Box sx={{ 
+        minHeight: '85vh', // Un poco más alto para lucir mejor
+        display: 'flex', 
+        alignItems: 'center', 
+        background: 'linear-gradient(to bottom right, #fff0f7, #ffffff)',
+        pt: 2 // Padding top para separar del navbar si no es transparente
+      }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            {/* Texto Hero */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 1, letterSpacing: 1 }}>
+                  SISTEMA DE APOYO AL DIAGNÓSTICO
+                </Typography>
+                
+                <Typography variant="h2" sx={{ fontWeight: '800', mb: 3, color: '#2c3e50', lineHeight: 1.2 }}>
+                  Tecnología avanzada para el cuidado de la mujer
+                </Typography>
+                
+                <Typography variant="body1" sx={{ mb: 4, fontSize: '1.1rem', color: '#666', lineHeight: 1.6 }}>
+                  Una herramienta inteligente diseñada para asistir a especialistas en el análisis de mamografías. Únete a la innovación médica y mejora la precisión en la detección temprana.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                  <ButtonsMod
+                    variant='principal'
+                    textCont='Comenzar ahora'
+                    width='12rem'
+                    clickEvent={handleStartClick}
+                  />
+                </Box>
+              </Box>
+            </Grid>
 
-      {/*
-      <section className='cardAlcaldias'>
-        <h2 className='home-h2'>Conoce las alcaldías de la CDMX</h2>
-        <p className='home-p'>Infinitas posibilidades x 16 alcaldías</p>
-
-        <div className='container slider'>
-          <Slider {...settings}>
-            {selectedCards.map((datos) => (
-              <CardAlcaldia
-                key={datos.id}
-                nombreAlcaldia={datos.nombreAlcaldia}
-                nombreLugar={datos.nombreLugar}
-                nombreImagen={datos.nombreImagen}
+            {/* Imagen Hero */}
+            <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <img 
+                src={screeningImg} 
+                alt="Ilustración médica tecnología" 
+                style={{ maxWidth: '100%', maxHeight: '500px', objectFit: 'contain', filter: 'drop-shadow(0px 10px 20px rgba(0,0,0,0.1))' }} 
               />
-            ))}
-          </Slider>
-        </div>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
-        
-        <div className='alc-vermas'>
-          <ButtonsMod
-            variant='principal'
-            textCont='Ver más'
-            clickEvent={handlePlaceAlcaldiasClick}
-          />
-        </div>
-      </section>
-      
-      <br></br>
-      <section>
-        <div className='home-text'>
-          <h3>
-            <strong>
-              {isRegistered
-                ? 'Lugares que te podrían interesar'
-                : 'Explora nuestras categorías'}
-            </strong>
-          </h3>
-        </div>
-        <CatHome />
-      </section>
+      {/* === SECCIÓN SOBRE NOSOTROS (Aquí insertamos el componente) === */}
+      <PreguntaRegistro />
 
-
-
-      <section>
-        <div className='mapa'>
-          <h2>¡Sorpréndete con lo que te rodea!</h2>
-          <Mapa />
-        </div>
-      </section>*/}
-
-      <br></br>
-
-      <section>
-        <PreguntaRegistro />
-      </section>
-      <br></br>
-
-      <Footer
-        showIncorporaLugar={false} />
-    </div>
+      <Footer showIncorporaLugar={false} />
+    </ThemeProvider>
   );
-};
+}
 
 export default HomePage;

@@ -1,60 +1,80 @@
-import React, { useState } from 'react';
-import angelImage from '../img/HomePage/angel.jpeg';
-import screening from '../img/HomePage/Ilustration.webp';
-import '../css/HomePage.css';
+import React from 'react';
+import { Box, Container, Typography, Grid, Paper } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import ThemeMaterialUI from './ThemeMaterialUI';
 
+// Asegúrate de tener esta imagen o usa una de médicos/tecnología
+import screeningImg from '../img/HomePage/Ilustration.webp'; 
 
-function PreguntaRegistro() {
-    const [isLoggedIn, setIsLoggedIn] = useState(true); // Simula el estado de registro del usuario
+function preguntaRegistro() {
+  return (
+    <ThemeProvider theme={ThemeMaterialUI}>
+      {/* El id="sobre-nosotros" es CLAVE para que el enlace del menú funcione */}
+      <Box id="sobre-nosotros" sx={{ py: 8, bgcolor: '#fff' }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={6} alignItems="center">
+            
+            {/* Columna de Texto */}
+            <Grid item xs={12} md={7}>
+              <Box sx={{ pr: { md: 4 } }}>
+                <Typography 
+                  variant="h4" 
+                  component="h2" 
+                  color="primary" 
+                  fontWeight="bold" 
+                  gutterBottom
+                >
+                  ¿Quiénes Somos?
+                </Typography>
+                
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 3, fontWeight: 'medium' }}>
+                  Innovación tecnológica al servicio de la salud en México.
+                </Typography>
 
-    return (
-        <div className="w-100 pr-0">
-            <div className="container-fluid">
-                <div className="row justify-content-center">
-                    <div className="col-12 col-lg-10 p-3 pr-1" >
-                        <div className="row">
-                            <div className="col-12 col-md-7 d-flex flex-column justify-content-center pr-2" >
-                                <h2 className="pregunta">
-                                    {isLoggedIn ? '¡Bienvenido!' : '¿Ya te encuentras registrado?'}
-                                </h2>
-                                <div className="pr-pitch">
-                                    {isLoggedIn ? (
-                                        <>
-                                            <p>
-                                                ¡Descubre las funcionalidades de nuestro sistema y realiza los análisis que ayuden a más gente! Con nuestro sistema, puedes tener una base solida para el diagnostico de cada paciente!
-                                            </p>
+                <Typography variant="body1" paragraph align="justify" sx={{ color: '#555' }}>
+                  Somos un equipo de ingenieros en formación del <strong>Instituto Politécnico Nacional (ESCOM)</strong>, comprometidos con el desarrollo de soluciones tecnológicas que impacten positivamente en la sociedad.
+                </Typography>
 
-                                            <p>
-                                                Aprovecha todas las herramientas que hemos desarrollado para ayudar a especialistas a tener un mejor panorama sobre la situación de cada paciente.
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p>
-                                                ¡Regístrate ahora y lleva la organización de tus viajes al siguiente nivel! Nuestra app te permite
-                                                crear un itinerario personalizado de manera fácil y rápida, ayudándote a disfrutar de cada destino al máximo.
-                                                Con una cuenta, tendrás acceso a herramientas exclusivas para que planear sea tan emocionante como el viaje mismo.
-                                            </p>
-                                            <p>
-                                                No dejes que la falta de planificación te haga perder momentos únicos. <strong>¡Regístrate ahora y comienza a crear el itinerario de tus sueños!</strong>
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="col-12 col-md-5 d-flex align-items-center justify-content-center">
-                                <img
-                                    src={screening}
-                                    alt="Ángel de la independencia"
-                                    className="img-fluid pr-img"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+                <Typography variant="body1" paragraph align="justify" sx={{ color: '#555' }}>
+                  Nuestro proyecto nace de la necesidad de fortalecer las herramientas de diagnóstico en el sector salud. Entendemos que la detección temprana es la clave en la lucha contra el cáncer de mama, por lo que hemos desarrollado este sistema auxiliar basado en <strong>Inteligencia Artificial y Aprendizaje Automático</strong>.
+                </Typography>
+
+                <Typography variant="body1" paragraph align="justify" sx={{ color: '#555' }}>
+                  Nuestro objetivo no es sustituir al médico, sino brindarle una "segunda opinión" matemática y precisa que agilice el análisis de mamografías, permitiendo diagnósticos más rápidos y confiables para salvar más vidas.
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Columna de Imagen */}
+            <Grid item xs={12} md={5}>
+              <Paper 
+                elevation={4} 
+                sx={{ 
+                  borderRadius: 4, 
+                  overflow: 'hidden',
+                  transform: 'rotate(2deg)', // Un pequeño toque de diseño
+                  transition: 'transform 0.3s',
+                  '&:hover': { transform: 'rotate(0deg)' }
+                }}
+              >
+                <Box 
+                  component="img" 
+                  src={screeningImg} 
+                  alt="Equipo médico y tecnología" 
+                  sx={{ 
+                    width: '100%', 
+                    height: 'auto', 
+                    display: 'block' 
+                  }} 
+                />
+              </Paper>
+            </Grid>
+
+          </Grid>
+        </Container>
+      </Box>
+    </ThemeProvider>
+  );
 }
 
-export default PreguntaRegistro;
+export default preguntaRegistro;

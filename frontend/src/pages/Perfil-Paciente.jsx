@@ -1,67 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/NavBar';
-import Footer from '../components/Footer';
-import ThemeMaterialUI from '../components/ThemeMaterialUI';
-import { ThemeProvider } from '@mui/material/styles';
 import {
-  Box, Container, Paper, Typography, Avatar, IconButton, Divider, Grid, Chip,
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
-  FormControl, RadioGroup, FormControlLabel, Radio, Switch,
-  CircularProgress, Alert
+  Box, Container, Paper, Typography, Avatar, IconButton, Divider, Grid, 
+  Button, TextField, Tab, Tabs, Stack, Alert, CircularProgress, Switch, FormControlLabel, Badge, Snackbar
 } from '@mui/material';
 import {
-  Person as PersonIcon, CalendarToday as CalendarIcon, Wc as GenderIcon,
-  Description as DocumentIcon, Edit as EditIcon, Save as SaveIcon, Close as CloseIcon
+  Person as PersonIcon, 
+  History as HistoryIcon,
+  Biotech as BiotechIcon,
+  Edit as EditIcon, 
+  Save as SaveIcon, 
+  Close as CloseIcon,
+  AddPhotoAlternate as AddPhotoIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  Home as HomeIcon,
+  CalendarToday as CalendarIcon,
+  Wc as WcIcon,
+  PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import dayjs from 'dayjs';
+import Layout from '../components/Layout';
 
 function PatientProfilePage() {
   const { id } = useParams();
   const { token } = useAuth();
+  const navigate = useNavigate();
 
-  // --- Estados principales ---
+  // --- ESTADOS ---
   const [paciente, setPaciente] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [openConfirmSave, setOpenConfirmSave] = useState(false);
-  const [fechaIngreso, setFechaIngreso] = useState('');
-  const [sexo, setSexo] = useState('');
-  const [status, setStatus] = useState(true);
   
-
-  // --- Diálogos ---
-  const [openCalendar, setOpenCalendar] = useState(false);
-  const [openSexo, setOpenSexo] = useState(false);
-  const [openConfirmStatus, setOpenConfirmStatus] = useState(false);
-
-  const [tempFecha, setTempFecha] = useState('');
-  const [tempSexo, setTempSexo] = useState('');
-  const [pendingStatus, setPendingStatus] = useState(false);
-
-  // --- Edición de datos ---
+  // Estados de feedback
+  const [mensajeExito, setMensajeExito] = useState(''); // <--- NUEVO: Para confirmar cambios
+  
+  const [tabValue, setTabValue] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editedPaciente, setEditedPaciente] = useState({});
+  const [status, setStatus] = useState(true);
+  
+  // Estados para la imagen
+  const [newProfileImage, setNewProfileImage] = useState(null); 
+  const [imagePreview, setImagePreview] = useState(null);       
 
-  // === 1️⃣ Cargar datos del paciente ===
+  // 1. Cargar Datos
   useEffect(() => {
     if (id && token) {
       const fetchPaciente = async () => {
         setLoading(true);
-        setError('');
         try {
           const response = await axios.get(`http://localhost:8000/api/pacientes/${id}/`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           setPaciente(response.data);
           setEditedPaciente(response.data);
-          setSexo(response.data.sexo || '');
           setStatus(response.data.estado === 'ACTIVO');
         } catch (err) {
-          console.error("Error al cargar paciente:", err.response?.data);
-          setError("No se pudieron cargar los datos del paciente. Es posible que no seas el médico encargado.");
+          console.error("Error:", err);
+          setError("No se pudo cargar el expediente del paciente.");
         } finally {
           setLoading(false);
         }
@@ -70,332 +68,358 @@ function PatientProfilePage() {
     }
   }, [id, token]);
 
-  // === 2️⃣ Función para actualizar datos (PATCH) ===
-  const updatePaciente = async (updates) => {
-    try {
-      const response = await axios.patch(
-        `http://localhost:8000/api/pacientes/${id}/`,
-        updates,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      setPaciente(response.data);
-      setEditedPaciente(response.data);
-      setSexo(response.data.sexo);
-      setStatus(response.data.estado === 'ACTIVO');
-      console.log("✅ Paciente actualizado:", response.data);
-      return true;
-    } catch (err) {
-      console.error("❌ Error al actualizar paciente:", err.response?.data || err.message);
-      alert("Error al actualizar los datos del paciente.");
-      return false;
+  // 2. Manejo de Imagen (Selección)
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewProfileImage(file);
+      setImagePreview(URL.createObjectURL(file)); 
     }
   };
 
-  // === 3️⃣ Handlers ===
-  const handleSaveFecha = async () => {
-    setFechaIngreso(tempFecha);
-    setOpenCalendar(false);
-    await updatePaciente({ fecha_ingreso: tempFecha });
-  };
-
-  const handleSaveSexo = async () => {
-    setSexo(tempSexo);
-    setOpenSexo(false);
-    await updatePaciente({ sexo: tempSexo });
-  };
-
-  // === 4️⃣ Cambio de estado (con confirmación visual) ===
-  const handleToggleStatus = () => {
-    const newStatus = !status;
-    setPendingStatus(newStatus);
-    setOpenConfirmStatus(true);
-  };
-
-  const handleConfirmStatusChange = async () => {
-    const newEstado = pendingStatus ? 'ACTIVO' : 'INACTIVO';
-    setOpenConfirmStatus(false);
-    setStatus(pendingStatus);
-    await updatePaciente({ estado: newEstado });
-  };
-
-  const handleCancelStatusChange = () => {
-    setOpenConfirmStatus(false);
-  };
-  
-  const handleAcceptChanges = () => {
-    setIsEditing(false);
-    setPaciente(editedPaciente);
-  };
-
-  // === 5️⃣ Edición de información personal ===
-  const handleEditToggle = () => setIsEditing(!isEditing);
-
-  const handleInputChange = (e) => {
-    setEditedPaciente({ ...editedPaciente, [e.target.name]: e.target.value });
-  };
-
+  // 3. Guardar Cambios
   const handleSaveChanges = async () => {
-    const success = await updatePaciente(editedPaciente);
-    if (success) setIsEditing(false);
+    try {
+      const formData = new FormData();
+      
+      formData.append('nombre', editedPaciente.nombre || '');
+      formData.append('apellido', editedPaciente.apellido || '');
+      formData.append('fecha_nac', editedPaciente.fecha_nac || ''); 
+      formData.append('sexo', editedPaciente.sexo || 'O');
+      formData.append('telefono', editedPaciente.telefono || '');
+      formData.append('correo', editedPaciente.correo || '');
+      formData.append('direccion', editedPaciente.direccion || '');
+      formData.append('historial_medico', editedPaciente.historial_medico || '');
+      formData.append('estado', status ? 'ACTIVO' : 'INACTIVO');
+
+      if (newProfileImage) {
+        formData.append('imagen_perfil', newProfileImage);
+      }
+
+      const response = await axios.patch(
+        `http://localhost:8000/api/pacientes/${id}/`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      setPaciente(response.data);
+      setEditedPaciente(response.data);
+      setNewProfileImage(null);
+      setImagePreview(null);
+      setIsEditing(false);
+      
+      // --- MENSAJE DE CONFIRMACIÓN ---
+      setMensajeExito("¡Datos actualizados correctamente!"); // <--- ESTO FALTABA
+      
+    } catch (err) {
+      console.error("Error update:", err.response?.data);
+      alert("Error al guardar cambios. Revisa los datos ingresados.");
+    }
   };
 
-  const handleCancelEdit = () => {
-    setEditedPaciente(paciente);
-    setIsEditing(false);
+  // Manejador exclusivo para el Switch
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.checked;
+    setStatus(newStatus);
+    try {
+        await axios.patch(`http://localhost:8000/api/pacientes/${id}/`, 
+            { estado: newStatus ? 'ACTIVO' : 'INACTIVO' },
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        setPaciente(prev => ({ ...prev, estado: newStatus ? 'ACTIVO' : 'INACTIVO' }));
+        setMensajeExito(`Paciente marcado como ${newStatus ? 'ACTIVO' : 'INACTIVO'}`); // <--- Feedback visual
+    } catch (err) {
+        setStatus(!newStatus); 
+    }
   };
 
-  // === Renderizados condicionales ===
-  if (loading) {
-    return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <Navbar />
-        <Container maxWidth="lg" sx={{ my: 6, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress color="primary" size={60} />
-        </Container>
-        <Footer />
-      </ThemeProvider>
-    );
-  }
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
-  if (error) {
-    return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <Navbar />
-        <Container maxWidth="lg" sx={{ my: 6 }}>
-          <Alert severity="error">{error}</Alert>
-        </Container>
-        <Footer />
-      </ThemeProvider>
-    );
-  }
+  // Función para cerrar la alerta automática
+  const handleCloseAlert = () => setMensajeExito('');
 
-  if (!paciente) {
-    return (
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <Navbar />
-        <Container maxWidth="lg" sx={{ my: 6 }}>
-          <Alert severity="warning">No se encontró al paciente.</Alert>
-        </Container>
-        <Footer />
-      </ThemeProvider>
-    );
-  }
+  if (loading) return <Layout><Box sx={{display:'flex', height:'80vh', justifyContent:'center', alignItems:'center'}}><CircularProgress/></Box></Layout>;
+  if (error) return <Layout><Container sx={{mt:4}}><Alert severity="error">{error}</Alert></Container></Layout>;
+  if (!paciente) return null;
 
-  // === Render principal ===
   return (
-    <ThemeProvider theme={ThemeMaterialUI}>
-      <Navbar />
-      <Container maxWidth="lg" sx={{ my: 6 }}>
-        <Grid container spacing={4}>
+    <Layout>
+      {/* Alerta Flotante de Éxito */}
+      <Snackbar 
+        open={!!mensajeExito} 
+        autoHideDuration={4000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseAlert} severity="success" sx={{ width: '100%' }}>
+          {mensajeExito}
+        </Alert>
+      </Snackbar>
+
+      {/* Fondo Decorativo Rosa */}
+      <Box sx={{ 
+        height: 160, 
+        background: 'linear-gradient(90deg, #E4007C 0%, #ff66a1 100%)',
+        mb: -8 
+      }} />
+
+      <Container maxWidth="lg" sx={{ mb: 6 }}>
+        <Grid container spacing={3}>
+          
           {/* === IZQUIERDA === */}
-          <Grid item xs={12} md={5}>
-            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', background: 'rgba(255, 255, 255, 0.98)' }}>
-              <Box sx={{ bgcolor: 'primary.main', height: 100 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: -8, mb: 2 }}>
-                <Avatar
-                  src={paciente.imagen_perfil ? `http://localhost:8000${paciente.imagen_perfil}` : ''}
-                  sx={{ width: 120, height: 120, bgcolor: '#d3d3d3', border: '4px solid white' }}
+          <Grid item xs={12} md={4}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 2, textAlign: 'center', height: '100%' }}>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  badgeContent={
+                    isEditing ? (
+                      <IconButton 
+                        component="label"
+                        sx={{ 
+                          bgcolor: '#E4007C', 
+                          color: 'white', 
+                          '&:hover': { bgcolor: '#C20069' }, 
+                          width: 35, height: 35,
+                          boxShadow: 2
+                        }}
+                      >
+                        <PhotoCameraIcon fontSize="small" />
+                        <input hidden type="file" accept="image/*" onChange={handleImageChange} />
+                      </IconButton>
+                    ) : null
+                  }
                 >
-                  {!paciente.imagen_perfil && <PersonIcon sx={{ fontSize: 60 }} />}
-                </Avatar>
+                  <Avatar
+                    src={imagePreview || (paciente.imagen_perfil ? `http://localhost:8000${paciente.imagen_perfil}` : '')}
+                    sx={{ 
+                      width: 120, height: 120, 
+                      bgcolor: '#e0e0e0', 
+                      border: '4px solid white', 
+                      boxShadow: 2,
+                      fontSize: 50
+                    }}
+                  >
+                    {!paciente.imagen_perfil && !imagePreview && <PersonIcon fontSize="inherit" />}
+                  </Avatar>
+                </Badge>
               </Box>
-              <Typography variant="h5" align="center" sx={{ fontWeight: 'bold', mb: 4 }}>
+
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
                 {paciente.nombre} {paciente.apellido}
               </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                ID: {paciente.id}
+              </Typography>
 
-              <Box sx={{ px: 4, pb: 4 }}>
-                {/* Fecha */}
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Fecha de ingreso</Typography>
-                    <Typography variant="body2" color="text.secondary">{fechaIngreso || 'No registrada'}</Typography>
-                  </Box>
-                  <IconButton size="small" color="primary" onClick={() => { setTempFecha(fechaIngreso); setOpenCalendar(true); }}>
-                    <CalendarIcon />
-                  </IconButton>
-                </Box>
+              <Divider sx={{ my: 3 }} />
 
-                {/* Sexo */}
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Sexo</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {sexo === 'M' ? 'Masculino' : sexo === 'F' ? 'Femenino' : sexo === 'O' ? 'Otro' : 'No registrado'}
-                    </Typography>
-                  </Box>
-                  <IconButton size="small" color="primary" onClick={() => { setTempSexo(sexo); setOpenSexo(true); }}>
-                    <GenderIcon />
-                  </IconButton>
-                </Box>
-
-                {/* Estado */}
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Status</Typography>
-                    <Typography variant="body2" color="text.secondary">{status ? 'Activo' : 'Inactivo'}</Typography>
-                  </Box>
-                  <Switch checked={status} onChange={handleToggleStatus} color="primary" />
-                </Box>
+              <Box sx={{ bgcolor: status ? '#e8f5e9' : '#ffebee', p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" color={status ? "success.main" : "error.main"} fontWeight="bold" gutterBottom>
+                    ESTADO DEL EXPEDIENTE
+                </Typography>
+                
+                <FormControlLabel
+                    control={
+                        <Switch 
+                            checked={status} 
+                            onChange={handleStatusChange} 
+                            color={status ? "success" : "error"}
+                        />
+                    }
+                    label={status ? "Paciente Activo" : "Paciente Inactivo"}
+                />
               </Box>
+
             </Paper>
           </Grid>
 
           {/* === DERECHA === */}
-          <Grid item xs={12} md={7}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <Paper elevation={3} sx={{ p: 4, borderRadius: 2, position: 'relative' }}>
-                <IconButton
-                  sx={{ position: 'absolute', top: 16, right: 16 }}
-                  size="small"
-                  color={isEditing ? "error" : "primary"}
-                  onClick={isEditing ? handleCancelEdit : handleEditToggle}
+          <Grid item xs={12} md={8}>
+            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', minHeight: 500 }}>
+              
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f9f9f9' }}>
+                <Tabs 
+                    value={tabValue} 
+                    onChange={handleTabChange} 
+                    variant="fullWidth"
+                    textColor="primary"
+                    indicatorColor="primary"
                 >
-                  {isEditing ? <CloseIcon /> : <EditIcon />}
-                </IconButton>
+                  <Tab label="Datos Personales" icon={<PersonIcon />} iconPosition="start" />
+                  <Tab label="Historial Médico" icon={<HistoryIcon />} iconPosition="start" />
+                  <Tab label="Análisis" icon={<BiotechIcon />} iconPosition="start" />
+                </Tabs>
+              </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <PersonIcon color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Información personal</Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                  {isEditing ? (
-                    <>
-                      <TextField label="Email" name="correo" value={editedPaciente.correo || ''} onChange={handleInputChange} fullWidth />
-                      <TextField label="Nombre" name="nombre" value={editedPaciente.nombre || ''} onChange={handleInputChange} fullWidth />
-                      <TextField label="Apellido" name="apellido" value={editedPaciente.apellido || ''} onChange={handleInputChange} fullWidth />
-                      <TextField label="Teléfono" name="telefono" value={editedPaciente.telefono || ''} onChange={handleInputChange} fullWidth />
-                      <TextField label="Dirección" name="direccion" value={editedPaciente.direccion || ''} onChange={handleInputChange} fullWidth />
-
+              {/* PESTAÑA 1: DATOS */}
+              <div role="tabpanel" hidden={tabValue !== 0}>
+                {tabValue === 0 && (
+                  <Box sx={{ p: 4 }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                      <Typography variant="h6" fontWeight="bold" color="primary">Ficha de Identificación</Typography>
                       <Button 
-                      variant="contained"
-                       color="primary"
-                        startIcon={<SaveIcon />}
-                        onClick={() => setOpenConfirmSave(true)}
+                        startIcon={isEditing ? <CloseIcon/> : <EditIcon/>} 
+                        onClick={() => {
+                            setIsEditing(!isEditing);
+                            if (isEditing) { 
+                                setNewProfileImage(null);
+                                setImagePreview(null);
+                                setEditedPaciente(paciente);
+                            }
+                        }}
+                        color={isEditing ? "error" : "primary"}
+                        variant="outlined"
                       >
-                        Guardar Cambios
+                        {isEditing ? "Cancelar Edición" : "Editar Datos"}
                       </Button>
+                    </Box>
 
-                    </>
-                  ) : (
-                    <>
-                      <Typography><b>Email:</b> {paciente.correo || 'No especificado'}</Typography>
-                      <Typography><b>Nombre:</b> {paciente.nombre} {paciente.apellido}</Typography>
-                      <Typography><b>Fecha de nacimiento:</b> {dayjs(paciente.fecha_nac).format('DD [de] MMMM [de] YYYY')}</Typography>
-                      <Typography><b>Teléfono:</b> {paciente.telefono || 'No especificado'}</Typography>
-                      <Typography><b>Dirección:</b> {paciente.direccion || 'No especificada'}</Typography>
-                    </>
-                  )}
-                </Box>
-              </Paper>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField 
+                          label="Nombre(s)" fullWidth size="small"
+                          value={isEditing ? editedPaciente.nombre : paciente.nombre}
+                          disabled={!isEditing}
+                          onChange={(e) => setEditedPaciente({...editedPaciente, nombre: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField 
+                          label="Apellidos" fullWidth size="small"
+                          value={isEditing ? editedPaciente.apellido : paciente.apellido}
+                          disabled={!isEditing}
+                          onChange={(e) => setEditedPaciente({...editedPaciente, apellido: e.target.value})}
+                        />
+                      </Grid>
 
-              <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <DocumentIcon color="primary" />
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Documentos / Análisis</Typography>
-                </Box>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
-                  {[...Array(10)].map((_, i) => (
-                    <Chip key={i} label="" sx={{ height: 40, bgcolor: '#d3d3d3' }} />
-                  ))}
-                </Box>
-              </Paper>
-            </Box>
+                      <Grid item xs={12} sm={6}>
+                         <TextField 
+                            label="Fecha de Nacimiento" fullWidth size="small" type="date"
+                            value={isEditing ? editedPaciente.fecha_nac : paciente.fecha_nac}
+                            disabled={!isEditing}
+                            onChange={(e) => setEditedPaciente({...editedPaciente, fecha_nac: e.target.value})}
+                            InputLabelProps={{ shrink: true }}
+                         />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField 
+                            label="Sexo" fullWidth size="small" select={isEditing}
+                            value={isEditing ? editedPaciente.sexo : (paciente.sexo === 'M' ? 'Masculino' : paciente.sexo === 'F' ? 'Femenino' : 'Otro')}
+                            disabled={!isEditing}
+                            onChange={(e) => setEditedPaciente({...editedPaciente, sexo: e.target.value})}
+                            SelectProps={{ native: true }}
+                        >
+                            {isEditing && (
+                                <>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </>
+                            )}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12}><Divider textAlign="left"><Typography variant="caption">CONTACTO</Typography></Divider></Grid>
+
+                      <Grid item xs={12} sm={6}>
+                        <TextField 
+                          label="Teléfono" fullWidth size="small"
+                          value={isEditing ? editedPaciente.telefono : (paciente.telefono || 'No registrado')}
+                          disabled={!isEditing}
+                          onChange={(e) => setEditedPaciente({...editedPaciente, telefono: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField 
+                          label="Correo Electrónico" fullWidth size="small"
+                          value={isEditing ? editedPaciente.correo : (paciente.correo || 'No registrado')}
+                          disabled={!isEditing}
+                          onChange={(e) => setEditedPaciente({...editedPaciente, correo: e.target.value})}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField 
+                          label="Dirección Completa" fullWidth size="small"
+                          value={isEditing ? editedPaciente.direccion : (paciente.direccion || 'No registrada')}
+                          disabled={!isEditing}
+                          onChange={(e) => setEditedPaciente({...editedPaciente, direccion: e.target.value})}
+                        />
+                      </Grid>
+                    </Grid>
+
+                    {isEditing && (
+                      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveChanges}>
+                          Guardar Cambios
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </div>
+
+              {/* PESTAÑA 2: HISTORIAL */}
+              <div role="tabpanel" hidden={tabValue !== 1}>
+                {tabValue === 1 && (
+                  <Box sx={{ p: 4 }}>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">Antecedentes Clínicos</Typography>
+                    <TextField
+                      multiline rows={10} fullWidth
+                      placeholder="Escriba aquí..."
+                      value={isEditing ? editedPaciente.historial_medico : (paciente.historial_medico || 'Sin antecedentes.')}
+                      disabled={!isEditing}
+                      onChange={(e) => setEditedPaciente({...editedPaciente, historial_medico: e.target.value})}
+                      sx={{ bgcolor: isEditing ? 'white' : '#f5f5f5' }}
+                    />
+                    <Box sx={{ mt: 2 }}>
+                        {!isEditing ? (
+                            <Button variant="outlined" startIcon={<EditIcon/>} onClick={() => setIsEditing(true)}>Editar Historial</Button>
+                        ) : (
+                            <Button variant="contained" startIcon={<SaveIcon/>} onClick={handleSaveChanges}>Guardar Historial</Button>
+                        )}
+                    </Box>
+                  </Box>
+                )}
+              </div>
+
+              {/* PESTAÑA 3: ANÁLISIS */}
+              <div role="tabpanel" hidden={tabValue !== 2}>
+                {tabValue === 2 && (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966486.png" alt="Expediente" style={{ width: 80, opacity: 0.5 }} />
+                    <Typography variant="h6" color="text.secondary" sx={{ mt: 2, mb: 3 }}>
+                        Historial de análisis vacío.
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        size="large"
+                        startIcon={<AddPhotoIcon />} 
+                        onClick={() => navigate('/comenzar-analisis')}
+                        sx={{ borderRadius: 50, px: 4 }}
+                    >
+                        Realizar Nuevo Análisis
+                    </Button>
+                  </Box>
+                )}
+              </div>
+
+            </Paper>
           </Grid>
+
         </Grid>
       </Container>
-
-      {/* === Diálogos === */}
-      <Dialog open={openCalendar} onClose={() => setOpenCalendar(false)}>
-        <DialogTitle>Seleccionar Fecha de Ingreso</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Fecha de Ingreso"
-            type="date"
-            fullWidth
-            variant="outlined"
-            value={tempFecha}
-            onChange={(e) => setTempFecha(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenCalendar(false)}>Cancelar</Button>
-          <Button onClick={handleSaveFecha} variant="contained" color="primary">Guardar</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openSexo} onClose={() => setOpenSexo(false)}>
-        <DialogTitle>Seleccionar Sexo</DialogTitle>
-        <DialogContent>
-          <FormControl component="fieldset" sx={{ mt: 2 }}>
-            <RadioGroup value={tempSexo} onChange={(e) => setTempSexo(e.target.value)}>
-              <FormControlLabel value="M" control={<Radio color="primary" />} label="Masculino" />
-              <FormControlLabel value="F" control={<Radio color="primary" />} label="Femenino" />
-              <FormControlLabel value="O" control={<Radio color="primary" />} label="Otro" />
-            </RadioGroup>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSexo(false)}>Cancelar</Button>
-          <Button onClick={handleSaveSexo} variant="contained" color="primary">Guardar</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openConfirmStatus} onClose={handleCancelStatusChange}>
-        <DialogTitle>Confirmar cambio de estado</DialogTitle>
-        <DialogContent>
-          <Typography>
-            ¿Seguro que deseas cambiar el estado del paciente a{' '}
-            <b>{pendingStatus ? 'ACTIVO' : 'INACTIVO'}</b>?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelStatusChange}>Cancelar</Button>
-          <Button onClick={handleConfirmStatusChange} variant="contained" color="primary">Confirmar</Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* === Diálogo Confirmar Guardado === */}
-<Dialog open={openConfirmSave} onClose={() => setOpenConfirmSave(false)}>
-  <DialogTitle>Confirmar cambios</DialogTitle>
-  <DialogContent>
-    <Typography>
-      ¿Deseas guardar los cambios realizados en la información del paciente?
-    </Typography>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setOpenConfirmSave(false)}>Cancelar</Button>
-    <Button
-      onClick={async () => {
-        setOpenConfirmSave(false);
-        await handleSaveChanges();
-        alert("Perfil de usuario actualizado con éxito.");
-      }}
-      variant="contained"
-      color="primary"
-    >
-      Confirmar
-    </Button>
-  </DialogActions>
-</Dialog>
-
-      
-
-      <Footer />
-    </ThemeProvider>
+    </Layout>
   );
 }
 

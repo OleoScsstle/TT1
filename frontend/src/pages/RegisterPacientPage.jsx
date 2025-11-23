@@ -1,8 +1,4 @@
 import React, { useState } from 'react';
-import Navbar from '../components/NavBar';
-import Footer from '../components/Footer';
-import ThemeMaterialUI from '../components/ThemeMaterialUI';
-import { ThemeProvider } from '@mui/material/styles';
 import {
   Box,
   Container,
@@ -22,33 +18,30 @@ import {
   Alert,
 } from '@mui/material';
 import {
-  DoneAllRounded as Check,
+  Person as PersonIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  Person as PersonIcon,
   PhotoCamera as CameraIcon,
   CalendarToday as CalendarIcon,
   Wc as WcIcon,
   Home as HomeIcon,
-  // Note as NoteIcon, // <-- Ya no se usa
 } from '@mui/icons-material';
 
-// --- Importaciones para el Date Picker ---
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
-// ----------------------------------------------------
 
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Layout from '../components/Layout';
 
 function RegisterPacientPage() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  // --- Estados para todos los campos del formulario ---
+  // Estados
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [correo, setCorreo] = useState('');
@@ -56,31 +49,56 @@ function RegisterPacientPage() {
   const [fechaNac, setFechaNac] = useState(null);
   const [sexo, setSexo] = useState('');
   const [direccion, setDireccion] = useState('');
-  // const [historialMedico, setHistorialMedico] = useState(''); // <-- ELIMINADO
   const [imagenPerfil, setImagenPerfil] = useState(null);
 
-  // Estados para errores y carga
+  // Errores y Carga
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiMessage, setApiMessage] = useState({ type: '', msg: '' });
 
-  // --- Manejador del formulario ---
+  // --- MANEJO DE TELÉFONO (Solo números) ---
+  const handleTelefonoChange = (e) => {
+    const val = e.target.value;
+    if (/^\d*$/.test(val) && val.length <= 10) {
+      setTelefono(val);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setApiMessage({ type: '', msg: '' });
     setErrors({});
 
-    // --- Validación básica de campos requeridos ---
+    // --- VALIDACIÓN ESTRICTA (Todo requerido menos foto) ---
     let localErrors = {};
-    if (!nombre) localErrors.nombre = 'El nombre es requerido.';
-    if (!apellido) localErrors.apellido = 'El apellido es requerido.';
+    
+    if (!nombre.trim()) localErrors.nombre = 'El nombre es requerido.';
+    if (!apellido.trim()) localErrors.apellido = 'El apellido es requerido.';
     if (!fechaNac) localErrors.fechaNac = 'La fecha de nacimiento es requerida.';
     if (!sexo) localErrors.sexo = 'El sexo es requerido.';
+    
+    // Nuevos campos obligatorios
+    if (!correo.trim()) {
+      localErrors.correo = 'El correo es requerido.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      localErrors.correo = 'Formato de correo inválido.';
+    }
 
+    if (!telefono.trim()) {
+      localErrors.telefono = 'El teléfono es requerido.';
+    } else if (telefono.length !== 10) {
+      localErrors.telefono = 'Debe tener 10 dígitos.';
+    }
+
+    if (!direccion.trim()) localErrors.direccion = 'La dirección es requerida.';
+
+    // Si hay errores, detenemos el envío
     if (Object.keys(localErrors).length > 0) {
       setErrors(localErrors);
       setLoading(false);
+      // Hacemos scroll arriba para que vea los errores
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     
@@ -89,12 +107,13 @@ function RegisterPacientPage() {
     formData.append('apellido', apellido);
     formData.append('fecha_nac', dayjs(fechaNac).format('YYYY-MM-DD'));
     formData.append('sexo', sexo);
-
-    if (correo) formData.append('correo', correo);
-    if (telefono) formData.append('telefono', telefono);
-    if (direccion) formData.append('direccion', direccion);
-    // if (historialMedico) formData.append('historial_medico', historialMedico); // <-- ELIMINADO
-    if (imagenPerfil) formData.append('imagen_perfil', imagenPerfil);
+    formData.append('correo', correo);
+    formData.append('telefono', telefono);
+    formData.append('direccion', direccion);
+    
+    if (imagenPerfil) {
+      formData.append('imagen_perfil', imagenPerfil);
+    }
 
     try {
       const response = await axios.post('http://localhost:8000/api/pacientes/', formData, {
@@ -109,7 +128,7 @@ function RegisterPacientPage() {
       setLoading(false);
 
       setTimeout(() => {
-        navigate('/Main-Loggin');
+        navigate('/main-page'); // Redirige al Dashboard
       }, 2000);
 
     } catch (error) {
@@ -119,6 +138,7 @@ function RegisterPacientPage() {
         setErrors(error.response.data);
       }
       setLoading(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -130,38 +150,40 @@ function RegisterPacientPage() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <ThemeProvider theme={ThemeMaterialUI}>
-        <Navbar
-          showingresa={false}
-          showRegistrate={false}
-          transparentNavbar={false}
-          lightLink={false}
-          staticNavbar={false}
-        />
-
+      <Layout>
         <Container maxWidth="lg" sx={{ my: 4 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 4 }}>
-            <PersonIcon color="primary" fontSize="large" />
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          
+          {/* Header de la Sección */}
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+            <Box sx={{ bgcolor: 'primary.main', p: 1, borderRadius: 2, display: 'flex' }}>
+                <PersonIcon sx={{ color: 'white', fontSize: 30 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
               Registrar Nuevo Paciente
             </Typography>
           </Stack>
           
           <Paper
-            elevation={3}
+            elevation={0} // Diseño más limpio (Flat) con borde sutil
             sx={{
-              p: { xs: 2, md: 4 },
-              borderRadius: 2,
-              background: 'rgba(255, 255, 255, 0.98)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              p: { xs: 3, md: 5 },
+              borderRadius: 3,
+              bgcolor: 'white',
+              border: '1px solid #e0e0e0'
             }}
           >
+            {/* Mensaje de API arriba */}
+            {apiMessage.msg && (
+              <Alert severity={apiMessage.type} sx={{ mb: 4 }}>{apiMessage.msg}</Alert>
+            )}
+
             <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
-              <Typography variant="h6" color="primary.dark" sx={{ mb: 3 }}>
-                Datos Demográficos
+              
+              <Typography variant="h6" color="primary" sx={{ mb: 3, fontWeight: 'bold' }}>
+                Información Personal
               </Typography>
               
-              <Grid container spacing={3}>
+              <Grid container spacing={4}>
                 
                 {/* --- Columna Izquierda --- */}
                 <Grid item xs={12} md={6}>
@@ -175,7 +197,7 @@ function RegisterPacientPage() {
                       error={!!errors.nombre}
                       helperText={errors.nombre}
                       InputProps={{
-                        startAdornment: (<InputAdornment position="start"><PersonIcon color="primary" /></InputAdornment>),
+                        startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>),
                       }}
                     />
                     <TextField
@@ -187,16 +209,24 @@ function RegisterPacientPage() {
                       error={!!errors.apellido}
                       helperText={errors.apellido}
                       InputProps={{
-                        startAdornment: (<InputAdornment position="start"><PersonIcon color="primary" /></InputAdornment>),
+                        startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>),
                       }}
                     />
                     <DatePicker
                       label="Fecha de Nacimiento *"
                       value={fechaNac}
                       onChange={(newValue) => setFechaNac(newValue)}
-                      renderInput={(params) => <TextField {...params} fullWidth required error={!!errors.fecha_nac || !!errors.fechaNac} helperText={errors.fecha_nac || errors.fechaNac} InputProps={{
-                        startAdornment: (<InputAdornment position="start"><CalendarIcon color="primary" /></InputAdornment>),
-                      }} />}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          required: true,
+                          error: !!errors.fecha_nac || !!errors.fechaNac,
+                          helperText: errors.fecha_nac || errors.fechaNac,
+                          InputProps: {
+                            startAdornment: (<InputAdornment position="start"><CalendarIcon color="action" /></InputAdornment>),
+                          }
+                        }
+                      }}
                     />
                      <FormControl fullWidth required error={!!errors.sexo}>
                       <InputLabel id="sexo-label">Sexo</InputLabel>
@@ -205,13 +235,13 @@ function RegisterPacientPage() {
                         value={sexo}
                         label="Sexo *"
                         onChange={(e) => setSexo(e.target.value)}
-                        startAdornment={<InputAdornment position="start"><WcIcon color="primary" /></InputAdornment>}
+                        startAdornment={<InputAdornment position="start"><WcIcon color="action" /></InputAdornment>}
                       >
                         <MenuItem value={"M"}>Masculino</MenuItem>
                         <MenuItem value={"F"}>Femenino</MenuItem>
                         <MenuItem value={"O"}>Otro</MenuItem>
                       </Select>
-                      {!!errors.sexo && <Typography color="error" variant="caption" sx={{ ml: 2 }}>{errors.sexo}</Typography>}
+                      {!!errors.sexo && <Typography color="error" variant="caption" sx={{ ml: 2, mt: 0.5 }}>{errors.sexo}</Typography>}
                     </FormControl>
                   </Stack>
                 </Grid>
@@ -221,107 +251,107 @@ function RegisterPacientPage() {
                    <Stack spacing={3}>
                      <TextField
                         fullWidth
-                        label="Correo electrónico (Opcional)"
+                        required
+                        label="Correo electrónico"
                         placeholder="ejemplo@correo.com"
                         value={correo}
                         onChange={(e) => setCorreo(e.target.value)}
                         error={!!errors.correo}
                         helperText={errors.correo}
                         InputProps={{
-                          startAdornment: (<InputAdornment position="start"><EmailIcon color="primary" /></InputAdornment>),
+                          startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>),
                         }}
                       />
                       <TextField
                         fullWidth
-                        label="Número telefónico (Opcional)"
-                        placeholder="000-000-0000"
+                        required
+                        label="Número telefónico"
+                        placeholder="10 dígitos"
                         value={telefono}
-                        onChange={(e) => setTelefono(e.target.value)}
+                        onChange={handleTelefonoChange} // Usamos el handler numérico
                         error={!!errors.telefono}
                         helperText={errors.telefono}
+                        inputProps={{ maxLength: 10 }}
                         InputProps={{
-                          startAdornment: (<InputAdornment position="start"><PhoneIcon color="primary" /></InputAdornment>),
+                          startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>),
                         }}
                       />
                       <TextField
                         fullWidth
-                        label="Dirección (Opcional)"
+                        required
+                        label="Dirección Completa"
                         placeholder="Calle, Número, Colonia, C.P."
                         value={direccion}
                         onChange={(e) => setDireccion(e.target.value)}
                         error={!!errors.direccion}
                         helperText={errors.direccion}
                         InputProps={{
-                          startAdornment: (<InputAdornment position="start"><HomeIcon color="primary" /></InputAdornment>),
+                          startAdornment: (<InputAdornment position="start"><HomeIcon color="action" /></InputAdornment>),
                         }}
                       />
                    </Stack>
                 </Grid>
                 
                 <Grid item xs={12}>
-                   <Divider sx={{ my: 3 }} />
-                   <Typography variant="h6" color="primary.dark" sx={{ mb: 3 }}>
-                    Foto del Paciente
-                   </Typography>
+                   <Divider sx={{ my: 2 }} />
                 </Grid>
 
-                <Grid item xs={12} md={12}>
+                {/* --- Área de Foto --- */}
+                <Grid item xs={12}>
+                   <Typography variant="h6" color="primary" sx={{ mb: 2, fontWeight: 'bold' }}>
+                     Fotografía (Opcional)
+                   </Typography>
                    <Box
                       sx={{
-                        border: '2px dashed rgba(0, 0, 0, 0.1)',
+                        border: '2px dashed',
+                        borderColor: 'primary.light',
                         borderRadius: 2,
                         p: 4,
                         textAlign: 'center',
-                        bgcolor: 'rgba(0, 0, 0, 0.02)',
+                        bgcolor: '#fafafa',
                         transition: 'all 0.3s ease',
                         cursor: 'pointer',
                         '&:hover': {
-                          bgcolor: 'rgba(0, 0, 0, 0.04)',
+                          bgcolor: '#f0f7ff',
                           borderColor: 'primary.main',
                         },
-                        height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center' 
                       }}
                     >
-                      <CameraIcon sx={{ fontSize: 40, color: 'primary.main', mb: 2, opacity: 0.8,}} />
-                      <Typography variant="h6" gutterBottom color="primary.main">
-                        Foto de Perfil (Opcional)
-                      </Typography>
+                      <CameraIcon sx={{ fontSize: 50, color: 'primary.main', mb: 1, opacity: 0.8 }} />
+                      
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         component="label"
-                        sx={{
-                          mt: 1,
-                          borderRadius: 8,
-                          px: 3,
-                          borderColor: 'primary.main',
-                          color: 'primary.main',
-                          '&:hover': {
-                            borderColor: 'primary.dark',
-                            bgcolor: 'rgba(255, 20, 147, 0.04)',
-                          },
-                        }}
+                        disableElevation
+                        sx={{ mt: 1, borderRadius: 50, px: 4 }}
                       >
-                        {imagenPerfil ? imagenPerfil.name : "Seleccionar una imagen"}
+                        {imagenPerfil ? "Cambiar Imagen" : "Subir Foto de Perfil"}
                         <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                       </Button>
+                      
+                      {imagenPerfil && (
+                        <Typography variant="body2" sx={{ mt: 2, color: 'success.main', fontWeight: 'bold' }}>
+                          Archivo seleccionado: {imagenPerfil.name}
+                        </Typography>
+                      )}
+                      
                       {!!errors.imagen_perfil && <Typography color="error" variant="caption" sx={{ mt: 1 }}>{errors.imagen_perfil}</Typography>}
                     </Box>
                 </Grid>
 
-                {/* --- Mensajes de API y Botón de Envío --- */}
-                <Grid item xs={12} sx={{ mt: 3 }}>
-                   {apiMessage.msg && (
-                    <Alert severity={apiMessage.type} sx={{ mb: 2 }}>
-                      {apiMessage.msg}
-                    </Alert>
-                  )}
-                </Grid>
-
-                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={() => navigate('/main-page')}
+                    sx={{ mr: 2 }}
+                  >
+                    Cancelar
+                  </Button>
                   <Button
                     variant="contained"
                     color="primary"
@@ -329,9 +359,9 @@ function RegisterPacientPage() {
                     size="large"
                     disabled={loading}
                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-                    sx={{ px: 5, py: 1.5 }}
+                    sx={{ px: 5, py: 1.5, borderRadius: 2, fontWeight: 'bold', boxShadow: 2 }}
                   >
-                    {loading ? "Registrando..." : "Registrar Paciente"}
+                    {loading ? "Guardando..." : "Registrar Paciente"}
                   </Button>
                 </Grid>
 
@@ -339,8 +369,7 @@ function RegisterPacientPage() {
             </Box>
           </Paper>
         </Container>
-        <Footer showIncorporaLugar={true} />
-      </ThemeProvider>
+      </Layout>
     </LocalizationProvider>
   );
 }

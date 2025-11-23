@@ -1,72 +1,85 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+// --- Contexto y Protecciones ---
+// Nota los '../' para salir de la carpeta 'routes'
+import { AuthProvider } from '../context/AuthContext'; 
+import PublicRoute from '../components/PublicRoute';
+import ProtectedRoute from '../components/ProtectedRoute';
+
+// --- Páginas ---
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
-import PlacePage from '../pages/PlacePage';
-import DeseadosPage from '../pages/DeseadosPage';
-import FavoritesPage from '../pages/FavoritesPage';
-import Itinerary from '../pages/ItineraryPage';
-//import ItinerariesSavedPage from '../pages/ItinerariesSavedPage';
+import RecuperarContrasena from '../pages/RecuperarConstrasena';
+import IngresarNuevaContrasena from '../pages/IngresarNuevaContrasena';
+import DashboardMedico from '../pages/DashboardMedico';
+import AdminPage from '../pages/AdminPage';
+import Perfil from '../pages/Perfil';
+import PerfilPaciente from '../pages/Perfil-Paciente';
+import NuevoAnalisis from '../pages/NuevoAnalisis';
+import RegistrarNuevoPaciente from '../pages/RegisterPacientPage';
 import TerminosCondiciones from '../pages/TerminosCondiciones';
 import PoliticasPrivacidad from '../pages/PoliticasPrivacidad';
 import ConfirmacionRegistro from '../pages/ConfirmacionRegistro';
-import HistorialBusqueda from '../pages/HistoryPage';
-import GenerarItinerario from '../pages/GenerarItinerario';
-import CategoriasPage from '../pages/Categorias';
-import ResumePage from '../pages/ResumenPage';
-import RegisterPacientPage from '../pages/RegisterPacientPage'; 
-//import AdminPage from '../pages/Administrador'; 
-import AdminPagePlaces from '../pages/AdministradorLugares'; 
-import Perfil from '../pages/Perfil';
-import Alcaldias from '../pages/AlcaldiasTotales';
-import RecuperarContrasena from '../pages/RecuperarConstrasena';
-import IngresarNuevaContrasena from '../pages/IngresarNuevaContrasena';
-import AdminDash from '../pages/AdminDashboard';
-import AllPlacesPage from '../pages/AllPlacesPage';
-import PreferenciasModal from '../components/preferencias/PreferenciasModal';
-import AdminSavedPlaces from '../pages/AdminSavedPlaces';
-import ComenzarAnalisisPages from '../pages/comenzarAnalisisPage';
-import MainPageLoggin from '../pages/Main-Loggin';  
-import PerfilPaciente from '../pages/Perfil-Paciente';
-import AdminPage from '../pages/AdminPage';
-
 
 function AppRouter() {
   return (
-    <Router>
-      <Routes>
-        <Route path='/' element={<HomePage />} />
-        <Route path='/login' element={<LoginPage />} />
-        <Route path='/register' element={<RegisterPage />} />
-        <Route path='/deseados' element={<DeseadosPage />} />
-        <Route path='/favoritos' element={<FavoritesPage />} />
-        <Route path='/itinerary' element={<Itinerary />} />
-        {/*<Route path='/itinerariesSaved' element={<ItinerariesSavedPage/>} />*/}
-        <Route path='/HistoryPage' element={<HistorialBusqueda/>} />
-        <Route path='/Categorias-page' element={<CategoriasPage/>} />
-        <Route path='/terminos-condiciones' element={<TerminosCondiciones />} />
-        <Route path='/politica-privacidad' element={<PoliticasPrivacidad />} />
-        <Route path='/confirmacion-registro' element={<ConfirmacionRegistro />} />
-        <Route path='/placepage' element={<PlacePage />} />
-        <Route path='/generar-itinerario' element={<GenerarItinerario />} />
-        <Route path='/resume-page' element={<ResumePage />}/>
-        <Route path='/image-analysis' element={<RegisterPacientPage />}/>
-        <Route path='/Admin-Page' element={<AdminPage />}/>
-        <Route path='/Admin-Page-Places' element={<AdminPagePlaces />}/>
-        <Route path='/perfil-page' element={<Perfil />}/>
-        <Route path='/alcaldias' element={<Alcaldias/>} />
-        <Route path='/recuperar-contrasena' element={<RecuperarContrasena />} />
-        <Route path='/Admin-dashboard' element={<AdminDash/>} />
-        <Route path='/all-places' element={<AllPlacesPage/>} />
-        <Route path = '/preferencias' element={<PreferenciasModal/>} />
-        <Route path='/Admin-SavedPlaces' element={<AdminSavedPlaces/>}/>
-        <Route path='/Comenzar-Analisis' element={<ComenzarAnalisisPages/>}/>
-        <Route path='/Main-Loggin' element={<MainPageLoggin/>}/>
-        <Route path='/perfil-paciente/:id' element={<PerfilPaciente />} />
-        <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena/>} />
-        <Route path='/admin/dashboard' element={<AdminPage />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          
+          {/* =========================================
+              RUTAS DE ACCESO LIBRE
+             ========================================= */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
+          <Route path="/politica-privacidad" element={<PoliticasPrivacidad />} />
+          
+          <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
+          <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena />} />
+          <Route path="/confirmacion-registro" element={<ConfirmacionRegistro />} />
+
+          {/* =========================================
+              RUTAS "PÚBLICAS" RESTRINGIDAS (Login/Registro)
+             ========================================= */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+
+          {/* =========================================
+              RUTAS PROTEGIDAS (Dashboard, Análisis, etc.)
+             ========================================= */}
+          <Route element={<ProtectedRoute />}>
+            
+            {/* --- Rutas Médico --- */}
+            <Route path="/dashboard-medico" element={<DashboardMedico />} />
+            <Route path="/main-page" element={<DashboardMedico />} /> 
+            
+            <Route path="/perfil-page" element={<Perfil />} />
+            <Route path="/perfil-paciente/:id" element={<PerfilPaciente />} />
+            
+            <Route path="/registrar-paciente" element={<RegistrarNuevoPaciente />} />
+            
+            {/* Ruta de análisis */}
+            <Route path="/comenzar-analisis" element={<NuevoAnalisis />} />
+            <Route path="/image-analysis" element={<NuevoAnalisis />} />
+
+            {/* --- Rutas Admin --- */}
+            <Route path="/admin/dashboard" element={<AdminPage />} />
+            <Route path="/admin/validaciones" element={<AdminPage />} />
+            <Route path="/admin/medicos" element={<AdminPage />} />
+            <Route path="/admin/pacientes" element={<AdminPage />} />
+
+          </Route>
+
+          {/* Ruta 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

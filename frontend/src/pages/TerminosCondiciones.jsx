@@ -1,109 +1,141 @@
 import React from 'react';
-import '../css/TyC.css';
-import NavBar from '../components/NavBar';
+import { Box, Container, Typography, Paper, Divider } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
+import ThemeMaterialUI from '../components/ThemeMaterialUI';
+import Layout from '../components/Layout'; // <--- 1. Importamos el Layout (con Sidebar)
+import { useAuth } from '../context/AuthContext'; // <--- 2. Importamos el Contexto
 
 const TerminosCondiciones = () => {
+  const { isAuthenticated } = useAuth(); // <--- 3. Verificamos si hay sesión
+
+  // Definimos el contenido en una variable para no repetirlo dos veces
+  const contenidoPrincipal = (
+    <Container maxWidth="lg" sx={{ py: 5, flex: 1 }}>
+      <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
+        
+        <Typography variant="h4" component="h1" fontWeight="bold" color="primary" gutterBottom>
+          Términos y Condiciones de Uso
+        </Typography>
+        
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Última actualización: Mayo 2025
+        </Typography>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            1. Aceptación de los Términos
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            Bienvenido al <strong>Sistema de Apoyo al Diagnóstico de Cáncer de Mama</strong>. 
+            Al acceder y utilizar esta plataforma, usted acepta cumplir y estar sujeto a los siguientes términos y condiciones. 
+            Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro servicio.
+          </Typography>
+        </Box>
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            2. Descripción del Servicio
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            Este sistema es una herramienta tecnológica desarrollada en la <strong>Escuela Superior de Cómputo (ESCOM)</strong> del <strong>Instituto Politécnico Nacional (IPN)</strong>. 
+            Su propósito es asistir a médicos especialistas mediante el análisis de imágenes de mamografías utilizando algoritmos de Inteligencia Artificial (Aprendizaje Automático) para identificar patrones asociados a posibles anomalías.
+          </Typography>
+        </Box>
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#d32f2f' }}>
+            3. Limitación de Responsabilidad Médica (IMPORTANTE)
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph sx={{ fontWeight: 'medium' }}>
+            <strong>LA APLICACIÓN NO SUSTITUYE EL JUICIO CLÍNICO DE UN MÉDICO.</strong>
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            Los resultados proporcionados por el sistema son únicamente sugerencias basadas en probabilidades matemáticas. 
+            El diagnóstico definitivo, la interpretación de los resultados y la decisión sobre el tratamiento del paciente son <strong>responsabilidad exclusiva del médico especialista</strong>. 
+            Los desarrolladores y la institución no se hacen responsables por decisiones médicas tomadas basándose exclusivamente en esta herramienta.
+          </Typography>
+        </Box>
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            4. Uso Adecuado de la Plataforma
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            Usted se compromete a utilizar el sistema únicamente con fines lícitos y profesionales. Está prohibido:
+          </Typography>
+          <ul>
+            <li>
+              <Typography variant="body1">Subir imágenes que no sean mamografías con fines de diagnóstico.</Typography>
+            </li>
+            <li>
+              <Typography variant="body1">Intentar vulnerar la seguridad del sistema o acceder a datos de otros pacientes sin autorización.</Typography>
+            </li>
+            <li>
+              <Typography variant="body1">Utilizar la plataforma para fines distintos al apoyo médico e investigación académica.</Typography>
+            </li>
+          </ul>
+        </Box>
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            5. Privacidad y Datos del Paciente
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            El manejo de la información de los pacientes (datos personales e imágenes médicas) se rige por nuestro <strong>Aviso de Privacidad</strong> y cumple con la normativa vigente en materia de protección de datos personales y salud en México. 
+            El usuario es responsable de contar con el consentimiento necesario para subir la información de los pacientes al sistema.
+          </Typography>
+        </Box>
+
+        <Box component="section" sx={{ mb: 4 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            6. Propiedad Intelectual
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            El software, los algoritmos, el diseño y los contenidos de este sistema son propiedad intelectual de sus desarrolladores y del Instituto Politécnico Nacional, protegidos por las leyes de derechos de autor aplicables.
+          </Typography>
+        </Box>
+
+        <Box component="section">
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            7. Modificaciones
+          </Typography>
+          <Typography variant="body1" align="justify" paragraph>
+            Nos reservamos el derecho de modificar estos términos en cualquier momento. Las actualizaciones serán publicadas en esta página y el uso continuo del servicio implicará la aceptación de dichos cambios.
+          </Typography>
+        </Box>
+
+      </Paper>
+    </Container>
+  );
+
+  // --- LÓGICA CONDICIONAL ---
+
+  // CASO 1: Usuario Logueado (Muestra Sidebar)
+  if (isAuthenticated) {
+    return (
+      <Layout>
+        {contenidoPrincipal}
+      </Layout>
+    );
+  }
+
+  // CASO 2: Usuario Público (Sin Sidebar, solo Navbar y Footer)
   return (
-    <div>
-      <NavBar
-        showingresa={false}
-        showRegistrate={true}
-        transparentNavbar={false}
-        lightLink={false}
-        staticNavbar={false}
-      />
+    <ThemeProvider theme={ThemeMaterialUI}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#f8f9fa' }}>
+        
+        {/* Navbar público */}
+        <Navbar showingresa={false} showRegistrate={false} />
 
-      <div className='TyC'>
-        <h1 className='TyC-header'>Términos y Condiciones</h1>
-        <div className='container'>
-          <div className="row">
-            <div className="col-12 col-md-4 TyC_navContainer order-1 order-md-1">
-              <nav id="navbar-example3" className="h-100 flex-column align-items-stretch pe-4 border-end TyC_nav">
-                <nav className="nav nav-pills flex-column TyC-nav">
-                  <a className="nav-link TyC_navLink" href="#item-1">Información Relevante</a>
-                  <a className="nav-link TyC_navLink" href="#item-2">Licencia</a>
-                  <a className="nav-link TyC_navLink" href="#item-3">Uso No Autorizado</a>
-                  <a className="nav-link TyC_navLink" href="#item-4">Propiedad</a>
-                  <a className="nav-link TyC_navLink" href="#item-5">Política de Reembolso y Garantía</a>
-                  <a className="nav-link TyC_navLink" href="#item-6">Comprobación Antifraude</a>
-                  <a className="nav-link TyC_navLink" href="#item-7">Privacidad</a>
-                </nav>
-              </nav>
-            </div>
+        {contenidoPrincipal}
 
-            <div className="col-12 col-md-8 TyC_contentContainer order-2 order-md-2">
-              <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" className="scrollspy-example-2 TyC_content" tabIndex="0">
-                <div id="item-1" className="TyC_section">
-                  <h4 className="TyC_title">Información Relevante</h4>
-                  <p className="TyC_text">
-                    Es requisito necesario para la adquisición de los productos que se ofrecen en este sitio, que lea y acepte los siguientes Términos y Condiciones que a continuación se redactan. El uso de nuestros servicios así como la compra de nuestros productos implicará que usted ha leído y aceptado los Términos y Condiciones de Uso en el presente documento. Todas los productos que son ofrecidos por nuestro sitio web pudieran ser creadas, cobradas, enviadas o presentadas por una página web tercera y en tal caso estarían sujetas a sus propios Términos y Condiciones. En algunos casos, para adquirir un producto, será necesario el registro por parte del usuario, con ingreso de datos personales fidedignos y definición de una contraseña.
-                  </p>
-                  <p className="TyC_text">
-                    El usuario puede elegir y cambiar la clave para su acceso de administración de la cuenta en cualquier momento, en caso de que se haya registrado y que sea necesario para la compra de alguno de nuestros productos. www.canasta_basica.com no asume la responsabilidad en caso de que entregue dicha clave a terceros.
-                  </p>
-                  <p className="TyC_text">
-                    Todas las compras y transacciones que se lleven a cabo por medio de este sitio web, están sujetas a un proceso de confirmación y verificación, el cual podría incluir la verificación del stock y disponibilidad de producto, validación de la forma de pago, validación de la factura (en caso de existir) y el cumplimiento de las condiciones requeridas por el medio de pago seleccionado. En algunos casos puede que se requiera una verificación por medio de correo electrónico.
-                  </p>
-                  <p className="TyC_text">
-                    Los precios de los productos ofrecidos en esta Tienda Online es válido solamente en las compras realizadas en este sitio web.
-                  </p>
-                </div>
-                <div id="item-2" className="TyC_section">
-                  <h4 className="TyC_title">Licencia</h4>
-                  <p className="TyC_text">
-                    Canasta_Basica a través de su sitio web concede una licencia para que los usuarios utilicen los productos que son vendidos en este sitio web de acuerdo a los Términos y Condiciones que se describen en este documento.
-                  </p>
-                </div>
-                <div id="item-3" className="TyC_section">
-                  <h4 className="TyC_title">Uso No Autorizado</h4>
-                  <p className="TyC_text">
-                    En caso de que aplique (para venta de software, templetes, u otro producto de diseño y programación) usted no puede colocar uno de nuestros productos, modificado o sin modificar, en un CD, sitio web o ningún otro medio y ofrecerlos para la redistribución o la reventa de ningún tipo.
-                  </p>
-                </div>
-                <div id="item-4" className="TyC_section">
-                  <h4 className="TyC_title">Propiedad</h4>
-                  <p className="TyC_text">
-                    Usted no puede declarar propiedad intelectual o exclusiva a ninguno de nuestros productos, modificado o sin modificar. Todos los productos son propiedad de los proveedores del contenido. En caso de que no se especifique lo contrario, nuestros productos se proporcionan sin ningún tipo de garantía, expresa o implícita. En ningún esta compañía será responsables de ningún daño incluyendo, pero no limitado a, daños directos, indirectos, especiales, fortuitos o consecuentes u otras pérdidas resultantes del uso o de la imposibilidad de utilizar nuestros productos.
-                  </p>
-                </div>
-                <div id="item-5" className="TyC_section">
-                  <h4 className="TyC_title">Política de Reembolso y Garantía</h4>
-                  <p className="TyC_text">
-                    En el caso de productos que sean mercancías irrevocables no-tangibles, no realizamos reembolsos después de que se envíe el producto, usted tiene la responsabilidad de entender antes de comprarlo. Le pedimos que lea cuidadosamente antes de comprarlo. Hacemos solamente excepciones con esta regla cuando la descripción no se ajusta al producto. Hay algunos productos que pudieran tener garantía y posibilidad de reembolso pero este será especificado al comprar el producto. En tales casos la garantía solo cubrirá fallas de fábrica y sólo se hará efectiva cuando el producto se haya usado correctamente. La garantía no cubre averías o daños ocasionados por uso indebido. Los términos de la garantía están asociados a fallas de fabricación y funcionamiento en condiciones normales de los productos y sólo se harán efectivos estos términos si el equipo ha sido usado correctamente. Esto incluye:
-                  </p>
-                  <ul className="TyC_list">
-                    <li>De acuerdo a las especificaciones técnicas indicadas para cada producto.</li>
-                    <li>En condiciones ambientales acorde con las especificaciones indicadas por el fabricante.</li>
-                    <li>En uso específico para la función con que fue diseñado de fábrica.</li>
-                    <li>En condiciones de operación eléctricas acorde con las especificaciones y tolerancias indicadas.</li>
-                  </ul>
-                </div>
-                <div id="item-6" className="TyC_section">
-                  <h4 className="TyC_title">Comprobación Antifraude</h4>
-                  <p className="TyC_text">
-                    La compra del cliente puede ser aplazada para la comprobación antifraude. También puede ser suspendida por más tiempo para una investigación más rigurosa, para evitar transacciones fraudulentas.
-                  </p>
-                </div>
-                <div id="item-7" className="TyC_section">
-                  <h4 className="TyC_title">Privacidad</h4>
-                  <p className="TyC_text">
-                    Este www.canasta_basica.com garantiza que la celta de vigo noticias información personal que usted envía cuenta con la seguridad necesaria. Los datos ingresados por usuario o en el caso de requerir una validación de los pedidos no serán entregados a terceros, salvo que deba ser revelada en cumplimiento a una orden judicial o requerimientos legales.
-                  </p>
-                  <p className="TyC_text">
-                    La suscripción a boletines de correos electrónicos publicitarios es voluntaria y podría ser seleccionada al momento de crear su cuenta.
-                  </p>
-                  <p className="TyC_text">
-                    Canasta_Basica reserva los derechos de cambiar o de modificar estos términos sin previo aviso.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Footer showIncorporaLugar={false} />
-    </div>
+        <Footer showIncorporaLugar={false} />
+      </Box>
+    </ThemeProvider>
   );
 };
 

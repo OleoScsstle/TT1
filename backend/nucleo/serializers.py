@@ -109,7 +109,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # --- CORRECCIÓN AQUÍ ---
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'medico_perfil']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name','is_staff','medico_perfil']
     
     # --- YA NO NECESITAMOS get_medico_perfil() ---
 

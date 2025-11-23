@@ -1,54 +1,53 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/NavBar";
-import Footer from "../components/Footer";
-import "../css/ItinerariesSavedPage.css";
-import ThemeMaterialUI from "../components/ThemeMaterialUI";
-import { ThemeProvider } from "@mui/material/styles";
+import { useLocation } from "react-router-dom"; 
 import {
-  Box, InputAdornment, IconButton, Typography, Paper, Button, List, ListItem, ListItemIcon, ListItemText,
-  CircularProgress, Alert, Stack, TextField, Chip, Divider
+  Box, IconButton, InputAdornment, Typography, Paper, Button, List, ListItem, ListItemIcon, ListItemText,
+  CircularProgress, Alert, Stack, TextField
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Person as PersonIcon,
-  VerifiedUser as VerifiedUserIcon,
-  Cancel as CancelIcon,
-  CheckCircle as CheckCircleIcon,
-  AssignmentInd as AssignmentIndIcon,
-  Group as GroupIcon, // Icono para Medicos Aprobados
-  RecentActors as RecentActorsIcon, // Icono para Pacientes
-  Delete as DeleteIcon // Icono para eliminar
+  AssignmentInd as AssignmentIndIcon, 
+  Group as GroupIcon, 
+  RecentActors as RecentActorsIcon, 
+  Delete as DeleteIcon,
+  Dashboard as DashboardIcon
 } from "@mui/icons-material";
 
 import { useAuth } from "../context/AuthContext";
 import axios from 'axios';
-
-// --- MENÚ ACTUALIZADO ---
-const opcionesMenu = [
-  { id: 'validaciones', icon: <AssignmentIndIcon />, label: "Validaciones Pendientes" },
-  { id: 'medicos', icon: <GroupIcon />, label: "Médicos Aprobados" },
-  { id: 'pacientes', icon: <RecentActorsIcon />, label: "Todos los Pacientes" },
-];
+import Layout from "../components/Layout";
 
 function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [seccionActiva, setSeccionActiva] = useState('validaciones');
-  const { token } = useAuth();
+  const [seccionActiva, setSeccionActiva] = useState('inicio');
   
-  // Estados generales
-  const [dataList, setDataList] = useState([]); // Lista genérica (se llena según la sección)
+  const { token } = useAuth();
+  const location = useLocation(); 
+  
+  const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mensajeExito, setMensajeExito] = useState('');
 
-  // --- FUNCIÓN MAESTRA DE CARGA ---
+  // --- 1. DETECTAR SECCIÓN POR URL ---
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/validaciones')) setSeccionActiva('validaciones');
+    else if (path.includes('/medicos')) setSeccionActiva('medicos');
+    else if (path.includes('/pacientes')) setSeccionActiva('pacientes');
+    else setSeccionActiva('inicio');
+  }, [location]);
+
+  // --- 2. CARGA DE DATOS (CON FILTRO ANTIDUPLICADOS) ---
   const fetchData = async () => {
+    if (seccionActiva === 'inicio') return;
+
     setLoading(true);
     setError('');
-    setDataList([]);
+    setDataList([]); // Limpiamos lista antes de cargar
     
     let url = '';
-    // Definimos la URL según la sección activa
     if (seccionActiva === 'validaciones') url = 'http://localhost:8000/api/admin/medicos/?estado=PENDIENTE';
     if (seccionActiva === 'medicos') url = 'http://localhost:8000/api/admin/medicos/?estado=APROBADO';
     if (seccionActiva === 'pacientes') url = 'http://localhost:8000/api/admin/pacientes/';
@@ -57,7 +56,13 @@ function AdminPage() {
       const response = await axios.get(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setDataList(response.data);
+
+      // --- MAGIA ANTI-DUPLICADOS ---
+      // Creamos un Map usando el 'id' como clave. Esto elimina automáticamente cualquier duplicado.
+      const uniqueData = [...new Map(response.data.map(item => [item.id, item])).values()];
+      
+      setDataList(uniqueData);
+
     } catch (err) {
       console.error("Error cargando datos:", err);
       setError("No se pudieron cargar los datos.");
@@ -68,205 +73,158 @@ function AdminPage() {
 
   useEffect(() => {
     if (token) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seccionActiva, token]);
 
-  // --- VALIDAR MÉDICO ---
-  const handleValidar = async (id, estado) => {
+  // --- 3. ACCIONES ---
+  const handleValidar = async (id, estado, e) => {
+    e.stopPropagation();
     try {
       await axios.patch(`http://localhost:8000/api/admin/medicos/${id}/validar/`, 
         { estado: estado },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
-      setMensajeExito(`Médico ${estado === 'APROBADO' ? 'aprobado' : 'rechazado'} correctamente.`);
-      fetchData(); // Recargar lista
+      setMensajeExito(`Acción realizada correctamente.`);
+      fetchData(); 
       setTimeout(() => setMensajeExito(''), 3000);
     } catch (err) {
       setError("Error al procesar la solicitud.");
     }
   };
 
-  // --- ELIMINAR (Médico o lo que sea) ---
-  const handleEliminar = async (id, tipo) => {
-    if (!window.confirm("¿Estás seguro de eliminar este registro? Esta acción no se puede deshacer.")) return;
+  // --- MODIFICADO: ELIMINAR GENÉRICO (SIRVE PARA MEDICOS Y PACIENTES) ---
+  const handleEliminar = async (id, e) => {
+    e.stopPropagation();
+    
+    const tipo = seccionActiva === 'pacientes' ? 'paciente' : 'médico';
+    if (!window.confirm(`¿Estás seguro de eliminar a este ${tipo}? Esta acción no se puede deshacer.`)) return;
+
+    // Definimos la URL según la sección activa
+    let deleteUrl = '';
+    if (seccionActiva === 'pacientes') {
+        deleteUrl = `http://localhost:8000/api/admin/pacientes/${id}/`;
+    } else {
+        // Para validaciones o médicos aprobados
+        deleteUrl = `http://localhost:8000/api/admin/medicos/${id}/`; 
+    }
 
     try {
-      // La URL base es la misma para eliminar médicos (sea pendiente o aprobado)
-      const url = `http://localhost:8000/api/admin/medicos/${id}/`; 
-      // NOTA: Si quisieras eliminar pacientes, necesitarías añadir esa lógica al backend viewset de pacientes (permitir destroy)
-      
-      await axios.delete(url, {
+      await axios.delete(deleteUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       setMensajeExito("Registro eliminado correctamente.");
-      fetchData();
+      // Filtramos localmente para que se vea rápido, luego fetchData asegura
+      setDataList(prev => prev.filter(item => item.id !== id)); 
+      
       setTimeout(() => setMensajeExito(''), 3000);
     } catch (err) {
-      setError("Error al eliminar.");
+      console.error(err);
+      setError("Error al eliminar el registro. Verifica que no tenga datos asociados críticos.");
     }
   };
 
-  // --- RENDERIZADO DE ITEMS ---
-  const renderContent = () => {
+  // --- 4. RENDERIZADO DE LISTA ---
+  const renderListItems = () => {
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
-    if (dataList.length === 0) return <Box sx={{ p: 4, textAlign: 'center' }}><Typography color="textSecondary">No hay datos para mostrar.</Typography></Box>;
+    if (dataList.length === 0) return <Typography sx={{p:4, textAlign:'center', color:'#7f8c8d'}}>No hay datos para mostrar.</Typography>;
+
+    // Filtro de búsqueda
+    const filteredList = dataList.filter(item => {
+        const fullName = `${item.nombre} ${item.apellido}`.toLowerCase();
+        const search = searchTerm.toLowerCase();
+        return fullName.includes(search) || (item.correo && item.correo.toLowerCase().includes(search));
+    });
 
     return (
-      <List sx={{ p: 0 }}>
-        {dataList
-          .filter(item => {
-             // Filtro simple de búsqueda
-             const texto = JSON.stringify(item).toLowerCase();
-             return texto.includes(searchTerm.toLowerCase());
-          })
-          .map((item) => (
-          <ListItem 
-            key={item.id} 
-            sx={{ borderBottom: '1px solid #eee', display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, gap: 2, alignItems: 'flex-start', py: 2 }}
-          >
-            {/* Lógica para mostrar MÉDICOS (Pendientes o Aprobados) */}
-            {(seccionActiva === 'validaciones' || seccionActiva === 'medicos') && (
-              <>
-                <ListItemIcon sx={{ minWidth: 'auto', mr: 2, mt: 1 }}>
-                   <PersonIcon color={seccionActiva === 'validaciones' ? 'warning' : 'primary'} fontSize="large" />
+        <List>
+            {filteredList.map((item) => (
+                <Paper key={item.id} elevation={0} sx={{ p: 2, mb: 1, border: '1px solid #eee', borderRadius: '8px', display: 'flex', alignItems: 'center' }}>
+                <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                    {seccionActiva === 'validaciones' ? <PersonIcon color="warning" /> : 
+                    seccionActiva === 'medicos' ? <PersonIcon color="primary" /> :
+                    <RecentActorsIcon color="secondary" />}
                 </ListItemIcon>
+                
                 <ListItemText 
-                  primary={
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      Dr. {item.nombre} {item.apellido}
-                    </Typography>
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="body2" component="span" display="block">
-                        Cédula: {item.cedula} | Especialidad: {item.especialidad}
-                      </Typography>
-                      <Typography variant="body2" component="span" display="block" color="textSecondary">
-                        {item.correo}
-                      </Typography>
-                      {item.telefono && <Typography variant="caption">Tel: {item.telefono}</Typography>}
-                    </>
-                  }
-                  sx={{ flexGrow: 1 }}
+                    primary={<Typography fontWeight="bold">{seccionActiva === 'pacientes' ? `${item.nombre} ${item.apellido}` : `Dr. ${item.nombre} ${item.apellido}`}</Typography>}
+                    secondary={seccionActiva === 'pacientes' ? item.correo : `Cédula: ${item.cedula} | ${item.especialidad}`}
+                    sx={{ flexGrow: 1 }}
                 />
                 
-                <Stack direction="row" spacing={1} alignItems="center">
-                  {/* Botones solo para PENDIENTES */}
-                  {seccionActiva === 'validaciones' && (
-                    <>
-                      <Button variant="outlined" color="error" startIcon={<CancelIcon />} onClick={() => handleValidar(item.id, 'RECHAZADO')}>
-                        Rechazar
-                      </Button>
-                      <Button variant="contained" color="success" startIcon={<CheckCircleIcon />} onClick={() => handleValidar(item.id, 'APROBADO')} sx={{ color: 'white' }}>
-                        Aprobar
-                      </Button>
-                    </>
-                  )}
-                  {/* Botón de ELIMINAR para APROBADOS */}
-                  {seccionActiva === 'medicos' && (
-                     <IconButton color="error" onClick={() => handleEliminar(item.id, 'medico')}>
-                       <DeleteIcon />
-                     </IconButton>
-                  )}
+                <Stack direction="row" spacing={1}>
+                    {/* Botones para validar médicos pendientes */}
+                    {seccionActiva === 'validaciones' && (
+                        <>
+                        <Button size="small" variant="outlined" color="error" onClick={(e) => handleValidar(item.id, 'RECHAZADO', e)}>Rechazar</Button>
+                        <Button size="small" variant="contained" color="success" sx={{color:'white'}} onClick={(e) => handleValidar(item.id, 'APROBADO', e)}>Aprobar</Button>
+                        </>
+                    )}
+                    
+                    {/* Botón de eliminar (Aparece en Médicos Aprobados y en Pacientes) */}
+                    {(seccionActiva === 'medicos' || seccionActiva === 'pacientes') && (
+                        <IconButton 
+                            size="small" 
+                            color="error" 
+                            onClick={(e) => handleEliminar(item.id, e)}
+                            title="Eliminar usuario"
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    )}
                 </Stack>
-              </>
-            )}
-
-            {/* Lógica para mostrar PACIENTES */}
-            {seccionActiva === 'pacientes' && (
-               <>
-                <ListItemIcon sx={{ minWidth: 'auto', mr: 2, mt: 1 }}>
-                   <RecentActorsIcon color="secondary" fontSize="large" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary={
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {item.nombre} {item.apellido}
-                    </Typography>
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="body2" component="span" display="block">
-                        Email: {item.correo || 'N/A'} | Tel: {item.telefono || 'N/A'}
-                      </Typography>
-                      <Box sx={{ mt: 1 }}>
-                        <Chip label={item.estado} size="small" color={item.estado === 'ACTIVO' ? 'success' : 'default'} variant="outlined" />
-                        <Typography variant="caption" sx={{ ml: 1, color: 'gray' }}>
-                           Médico: {item.esp_encargado ? `Dr. ${item.esp_encargado.nombre} ${item.esp_encargado.apellido}` : 'Sin asignar'}
-                        </Typography>
-                      </Box>
-                    </>
-                  }
-                />
-               </>
-            )}
-          </ListItem>
-        ))}
-      </List>
+                </Paper>
+            ))}
+        </List>
     );
   };
 
-  return (
-    <ThemeProvider theme={ThemeMaterialUI}>
-      <Navbar showingresa={false} showRegistrate={false} transparentNavbar={false} lightLink={false} staticNavbar={false} />
-      
-      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f8f9fa' }}>
-        
-        {/* Sidebar */}
-        <Paper elevation={0} sx={{ width: 240, bgcolor: 'white', borderRight: '1px solid #e1e5e9', display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>
-          <Box sx={{ p: 2, borderBottom: '1px solid #e1e5e9' }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#2c3e50' }}>Panel Admin</Typography>
-          </Box>
-          <Box sx={{ flex: 1, py: 1 }}>
-            {opcionesMenu.map((opcion) => (
-              <Box
-                key={opcion.id}
-                onClick={() => setSeccionActiva(opcion.id)}
-                sx={{
-                  display: 'flex', alignItems: 'center', py: 1.5, px: 2, cursor: 'pointer',
-                  bgcolor: seccionActiva === opcion.id ? '#e8f4fd' : 'transparent',
-                  borderRight: seccionActiva === opcion.id ? '3px solid #1976d2' : 'none',
-                  '&:hover': { bgcolor: '#f5f5f5' }
-                }}
-              >
-                <Box sx={{ mr: 2, color: seccionActiva === opcion.id ? '#1976d2' : '#7f8c8d' }}>{opcion.icon}</Box>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#2c3e50' }}>{opcion.label}</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Paper>
+  // --- 5. VISTA DE INICIO (Resumen) ---
+  const renderInicio = () => (
+    <Box sx={{ textAlign: 'center', mt: 4 }}>
+      <DashboardIcon sx={{ fontSize: 60, color: '#ddd', mb: 2 }} />
+      <Typography variant="h5" color="textSecondary">Bienvenido al Panel de Administración</Typography>
+      <Typography variant="body1" sx={{ mt: 1, color: '#888' }}>
+        Selecciona una opción del menú lateral para gestionar médicos y pacientes.
+      </Typography>
+    </Box>
+  );
 
-        {/* Contenido */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: 'white', borderBottom: '1px solid #e1e5e9' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 600, color: '#2c3e50', fontSize: '24px' }}>
-                {seccionActiva === 'validaciones' ? 'Solicitudes Pendientes' : seccionActiva === 'medicos' ? 'Médicos Aprobados' : 'Listado de Pacientes'}
-              </Typography>
-               <TextField
-                placeholder="Buscar..."
+  // --- RENDER PRINCIPAL ---
+  return (
+    <Layout>
+        {/* Header */}
+        <Paper elevation={0} sx={{ p: 3, bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: '24px', color: '#2c3e50' }}>
+              {seccionActiva === 'inicio' && 'Inicio'}
+              {seccionActiva === 'validaciones' && 'Validaciones Pendientes'}
+              {seccionActiva === 'medicos' && 'Médicos Aprobados'}
+              {seccionActiva === 'pacientes' && 'Listado de Pacientes'}
+            </Typography>
+            
+            {seccionActiva !== 'inicio' && (
+              <TextField
+                placeholder="Buscar por nombre..."
                 variant="outlined"
                 size="small"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: '#7f8c8d' }} /></InputAdornment>) }}
+                sx={{ maxWidth: 300 }}
+                InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>) }}
               />
-            </Box>
-          </Paper>
-
-          <Box sx={{ flex: 1, p: 3 }}>
-             {mensajeExito && <Alert severity="success" sx={{ mb: 2 }}>{mensajeExito}</Alert>}
-             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-             
-             {/* Renderizado dinámico */}
-             <Paper elevation={0} sx={{ bgcolor: 'white', borderRadius: '8px', border: '1px solid #e1e5e9' }}>
-                {renderContent()}
-             </Paper>
+            )}
           </Box>
+        </Paper>
+
+        {/* Contenido Dinámico */}
+        <Box sx={{ p: 3 }}>
+            {mensajeExito && <Alert severity="success" sx={{ mb: 2 }}>{mensajeExito}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+            {seccionActiva === 'inicio' ? renderInicio() : renderListItems()}
         </Box>
-      </Box>
-      <Footer showIncorporaLugar={false} />
-    </ThemeProvider>
+    </Layout>
   );
 }
 

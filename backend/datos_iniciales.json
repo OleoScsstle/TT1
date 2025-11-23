@@ -1,0 +1,89 @@
+[
+{
+    "model": "nucleo.medico",
+    "pk": 4,
+    "fields": {
+        "user": 5,
+        "nombre": "Alejandro Yael",
+        "apellido": "Dominguez Paez",
+        "telefono": "5635406980",
+        "direccion": "Avenida San Lorenzo, Colonia El Manto",
+        "correo": "alejandro@gmail.com",
+        "cedula": "1235296",
+        "especialidad": "Cirujano",
+        "fecha_nacimiento": "2002-01-13",
+        "estado_validacion": "PENDIENTE",
+        "admin_validador": null
+    }
+},
+{
+    "model": "nucleo.medico",
+    "pk": 5,
+    "fields": {
+        "user": 6,
+        "nombre": "Leonardo",
+        "apellido": "Hernandez Molina",
+        "telefono": null,
+        "direccion": null,
+        "correo": "leonardogaell02@gmail.com",
+        "cedula": "568981",
+        "especialidad": "Cirujano",
+        "fecha_nacimiento": null,
+        "estado_validacion": "PENDIENTE",
+        "admin_validador": null
+    }
+},
+{
+    "model": "nucleo.medico",
+    "pk": 6,
+    "fields": {
+        "user": 7,
+        "nombre": "Erika Viridiana",
+        "apellido": "Dominguez Paez",
+        "telefono": null,
+        "direccion": null,
+        "correo": "alejandro32@gmail.com",
+        "cedula": "894563",
+        "especialidad": "Cirujano",
+        "fecha_nacimiento": null,
+        "estado_validacion": "PENDIENTE",
+        "admin_validador": null
+    }
+},
+{
+    "model": "nucleo.paciente",
+    "pk": 1,
+    "fields": {
+        "esp_encargado": 4,
+        "nombre": "Gaell",
+        "apellido": "Hernandez Molina",
+        "telefono": "5635406908",
+        "direccion": "Avenida San Lorenzo  No. 81  Colonia El Manto Depto. 504",
+        "fecha_nac": "2002-11-13",
+        "fecha_ingreso": "2025-11-11",
+        "sexo": "M",
+        "correo": "ejemplo@gmail.com",
+        "imagen_perfil": "",
+        "historial_medico": "",
+        "estado": "ACTIVO"
+    }
+},
+{
+    "model": "nucleo.paciente",
+    "pk": 2,
+    "fields": {
+        "esp_encargado": 4,
+        "nombre": "Pedro Uriel",
+        "apellido": "Rodriguez Martinez",
+        "telefono": "5514955465",
+        "direccion": "AV tlahuac 1577 28",
+        "fecha_nac": "2002-09-19",
+        "fecha_ingreso": "2025-11-11",
+        "sexo": "M",
+        "correo": "Washaldoe@gmail.com",
+        "imagen_perfil": "perfiles_pacientes/Uriel.jpg",
+        "historial_medico": "",
+        "estado": "ACTIVO"
+    }
+}
+]

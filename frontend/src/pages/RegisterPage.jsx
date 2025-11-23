@@ -1,297 +1,348 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import { Container, Grid2 as Grid, Box, Typography, TextField, FormControl, InputLabel, OutlinedInput, InputAdornment, Button, Link, IconButton, FormHelperText } from '@mui/material';
+import { Container, Box, Typography, TextField, FormControl, InputLabel, OutlinedInput, InputAdornment, Button, Link, IconButton, FormHelperText, List, ListItem, ListItemIcon, ListItemText, Collapse } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // <-- Asegúrate que axios esté importado
+import axios from 'axios';
 
 // Iconos
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CloseIcon from '@mui/icons-material/Close';
-import GoogleIcon from '@mui/icons-material/Google';
-import FacebookRoundedIcon from '@mui/icons-material/FacebookRounded';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import CircleIcon from '@mui/icons-material/Circle';
 
 // Componentes
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import LeftImage from '../components/register/LeftImageR';
-import imgRegister from '../img/HomePage/ilustracion-mamografia.avif'; // Asegúrate que la ruta sea correcta
-
-// Estilos
+import imgRegister from '../img/HomePage/ilustracion-mamografia.avif';
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
-import '../css/RegisterPage.css'; // Asegúrate que la ruta sea correcta
+import '../css/RegisterPage.css';
 
 function RegisterPage() {
   const navigate = useNavigate();
 
-  // Estados para los campos del formulario
+  // --- ESTADOS DE CAMPOS ---
   const [nombre, setNombre] = useState('');
-  const [apellido, setApellido] = useState(''); // <-- NUEVO
+  const [apellido, setApellido] = useState('');
   const [correo, setCorreo] = useState('');
-  const [cedula, setCedula] = useState(''); // <-- NUEVO
-  const [especialidad, setEspecialidad] = useState(''); // <-- NUEVO
+  const [cedula, setCedula] = useState('');
+  const [especialidad, setEspecialidad] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [contraseña2, setContraseña2] = useState('');
 
-  // Estados para manejo de errores y validaciones
-  const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState(''); // <-- NUEVO para errores de la API
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  // --- ESTADOS DE REGLAS Y ENFOQUE ---
+  const [showEmailRules, setShowEmailRules] = useState(false); // Mostrar reglas correo
+  const [emailRules, setEmailRules] = useState({
+    sinEspacios: false,
+    arroba: false,
+    dominio: false
+  });
 
-  // Estados para visibilidad de contraseña
+  const [showPwdRules, setShowPwdRules] = useState(false); // Mostrar reglas password
+  const [pwdRules, setPwdRules] = useState({
+    length: false,
+    upper: false,
+    number: false,
+    special: false
+  });
+
+  // Estados generales
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
 
-  // --- VALIDACIONES (simplificadas para claridad, puedes hacerlas más robustas) ---
+  // --- MANEJADORES ---
+
+  // 1. Correo (Validación en tiempo real)
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setCorreo(val);
+    setEmailRules({
+      sinEspacios: val.length > 0 && !/\s/.test(val),
+      arroba: val.includes('@'),
+      dominio: /@[^@]+\.[^@]+/.test(val)
+    });
+  };
+
+  // 2. Contraseña (Validación en tiempo real)
+  const handlePasswordChange = (e) => {
+    const val = e.target.value;
+    setContraseña(val);
+    setPwdRules({
+      length: val.length >= 10,
+      upper: /[A-Z]/.test(val),
+      number: /[0-9]/.test(val),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(val)
+    });
+  };
+
+  // 3. Cédula (Solo números)
+  const handleCedulaChange = (e) => {
+    const val = e.target.value;
+    if (/^\d*$/.test(val)) {
+      setCedula(val);
+    }
+  };
+
+  // --- VALIDACIÓN FINAL (SUBMIT) ---
   const validarCampos = () => {
     let tempErrors = {};
     let isValid = true;
 
-    if (!nombre) { tempErrors.nombre = "El nombre es requerido."; isValid = false; }
-    if (!apellido) { tempErrors.apellido = "El apellido es requerido."; isValid = false; } // <-- NUEVO
-    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) { tempErrors.correo = "Correo inválido."; isValid = false; }
-    if (!cedula) { tempErrors.cedula = "La cédula profesional es requerida."; isValid = false; } // <-- NUEVO
-    if (!especialidad) { tempErrors.especialidad = "La especialidad es requerida."; isValid = false; } // <-- NUEVO
-    if (!contraseña || contraseña.length < 8) { tempErrors.contraseña = "La contraseña debe tener al menos 8 caracteres."; isValid = false; }
-    if (contraseña !== contraseña2) { tempErrors.contraseña2 = "Las contraseñas no coinciden."; isValid = false; }
+    if (!nombre) { tempErrors.nombre = "Requerido"; isValid = false; }
+    if (!apellido) { tempErrors.apellido = "Requerido"; isValid = false; }
+    
+    // Validar reglas de correo estrictas
+    if (!emailRules.sinEspacios || !emailRules.arroba || !emailRules.dominio) {
+        tempErrors.correo = "Formato de correo inválido"; isValid = false;
+    }
+
+    // Validar Cédula (7-8 o 10 dígitos)
+    if (!cedula) {
+        tempErrors.cedula = "Requerido"; isValid = false;
+    } else if (!/^(\d{7,8}|\d{10})$/.test(cedula)) {
+        tempErrors.cedula = "Debe tener 7, 8 o 10 dígitos."; 
+        isValid = false;
+    }
+
+    if (!especialidad) { tempErrors.especialidad = "Requerido"; isValid = false; }
+
+    // Validar reglas de contraseña estrictas
+    if (!pwdRules.length || !pwdRules.upper || !pwdRules.number || !pwdRules.special) {
+        tempErrors.contraseña = "Contraseña insegura";
+        isValid = false;
+    }
+
+    if (contraseña !== contraseña2) { 
+        tempErrors.contraseña2 = "Las contraseñas no coinciden"; isValid = false; 
+    }
 
     setErrors(tempErrors);
     return isValid;
   };
 
-  // --- MANEJADOR DEL SUBMIT ---
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
-    setApiError(''); // Limpiar errores de API previos
+    setApiError('');
 
     if (validarCampos()) {
       try {
-        // Enviar datos al backend
-        const response = await axios.post('http://localhost:8000/api/register/', {
-          correo: correo,
+        await axios.post('http://localhost:8000/api/register/', {
+          correo,
           password: contraseña,
-          nombre: nombre,
-          apellido: apellido, // <-- NUEVO
-          cedula: cedula, // <-- NUEVO
-          especialidad: especialidad, // <-- NUEVO
-          // telefono y direccion son opcionales según el serializer, no los incluimos por ahora
+          nombre,
+          apellido,
+          cedula,
+          especialidad,
         });
-
-        console.log('Registro exitoso:', response.data);
-        // Redirigir a la página de confirmación o login
-        navigate('/login'); // O '/login' si prefieres
-
+        navigate('/confirmacion-registro');
       } catch (error) {
-        console.error("Error en el registro:", error.response?.data);
-        // Mostrar errores específicos de la API si están disponibles
-        if (error.response && error.response.data) {
-           // Intenta mostrar el primer error que venga del backend
-           const backendErrors = error.response.data;
-           const firstErrorKey = Object.keys(backendErrors)[0];
-           const firstErrorMessage = backendErrors[firstErrorKey];
-           setApiError(`Error: ${firstErrorKey} - ${Array.isArray(firstErrorMessage) ? firstErrorMessage[0] : firstErrorMessage}`);
+        console.error("Error registro:", error);
+        if (error.response?.data) {
+           const backendData = error.response.data;
+           const firstKey = Object.keys(backendData)[0];
+           const msg = Array.isArray(backendData[firstKey]) ? backendData[firstKey][0] : backendData[firstKey];
+           setApiError(`${firstKey}: ${msg}`);
         } else {
-           setApiError('Error al registrar. Inténtalo de nuevo.');
+           setApiError('Error al conectar con el servidor.');
         }
       }
-    } else {
-      console.log("Errores de validación en el formulario");
     }
   };
 
-  // --- Handlers para visibilidad de contraseña ---
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
-  const handleClickShowPassword2 = () => setShowPassword2(!showPassword2);
-  const handleMouseDownPassword = (e) => e.preventDefault();
-  const handleHomeClick = () => navigate('/');
+  // Icono auxiliar para las reglas
+  const RuleIcon = ({ met }) => {
+    if (met) return <CheckCircleIcon fontSize="small" color="success" sx={{ fontSize: 14 }} />;
+    // Si ya se envió el formulario y no cumple, mostramos error, si no, circulo gris
+    if (formSubmitted && !met) return <CancelIcon fontSize="small" color="error" sx={{ fontSize: 14 }} />;
+    return <CircleIcon fontSize="small" sx={{ color: '#e0e0e0', fontSize: 10 }} />;
+  };
 
   return (
     <ThemeProvider theme={ThemeMaterialUI}>
       <Box className="register-background">
         <Box className="lo_pa-container-tool">
-          <Navbar
-            showingresa={false}
-            showRegistrate={false}
-            transparentNavbar={false}
-            lightLink={false}
-            staticNavbar={false}
-          />
+          <Navbar showingresa={false} showRegistrate={false} />
+          
           <Container maxWidth="md" disableGutters className='my-5 py-4 d-flex align-items-center justify-content-center'>
-            <Grid container sx={{ justifyContent: 'center', borderRadius: '6px', overflow: 'hidden', display: 'flex'}}>
-              {/* Left Image Section */}
-              <Grid item size={{ xs: 12, md: 6 }} className='register-left-container' sx={{display: 'flex'}}>
-                <LeftImage
-                  imageUrl={imgRegister}
-                  nombreFotografo="" />
+            <Grid container sx={{ justifyContent: 'center', borderRadius: '6px', overflow: 'hidden', boxShadow: 3 }}>
+              
+              {/* Lado Izquierdo (Imagen) */}
+              <Grid size={{ xs: 0, md: 6 }} sx={{ display: { xs: 'none', md: 'block' } }}>
+                <LeftImage imageUrl={imgRegister} nombreFotografo="" />
               </Grid>
 
-              {/* Form Section */}
-              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex' }}>
-                <Box className="register-right-form bg-light">
-                  <Box className="mx-3 pb-5 pt-3">
-                    <Box className="d-flex justify-content-end">
-                      <IconButton aria-label="cerrar" onClick={handleHomeClick}>
-                        <CloseIcon />
-                      </IconButton>
-                    </Box>
-                    <Box className="mx-4">
+              {/* Lado Derecho (Formulario - Ancho ajustado a 6 columnas) */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box className="register-right-form bg-light" sx={{ p: 4, height: '100%' }}>
+                  
+                  <Box className="d-flex justify-content-end">
+                    <IconButton onClick={() => navigate('/')}><CloseIcon /></IconButton>
+                  </Box>
 
-                      <Typography variant="h4" className="fw-bold">Regístrate</Typography>
-                      <Typography variant="subtitle1">Completa el formulario para continuar</Typography>
+                  <Box sx={{ px: 1 }}>
+                    <Typography variant="h4" className="fw-bold" color="primary">Regístrate</Typography>
+                    <Typography variant="subtitle1" color="textSecondary" sx={{ mb: 2 }}>
+                      Completa el formulario para continuar
+                    </Typography>
 
-                      <form className="register-form" onSubmit={handleFormSubmit}>
-                        {/* Campo Nombre */}
-                        <Box className="my-3">
-                          <TextField
-                            label="Nombre(s)"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
-                            fullWidth
-                            size="small"
-                            required
-                            error={formSubmitted && !!errors.nombre}
-                            helperText={formSubmitted && errors.nombre}
-                          />
-                        </Box>
+                    <form onSubmit={handleFormSubmit}>
+                      
+                      {/* NOMBRE Y APELLIDO */}
+                      <Box className="my-3">
+                        <TextField 
+                          label="Nombre(s) *" fullWidth size="small" 
+                          value={nombre} onChange={(e) => setNombre(e.target.value)}
+                          error={formSubmitted && !!errors.nombre} 
+                        />
+                      </Box>
+                      <Box className="my-3">
+                        <TextField 
+                          label="Apellido(s) *" fullWidth size="small" 
+                          value={apellido} onChange={(e) => setApellido(e.target.value)}
+                          error={formSubmitted && !!errors.apellido}
+                        />
+                      </Box>
 
-                        {/* Campo Apellido */}
-                        <Box className="my-3">
-                          <TextField
-                            label="Apellido(s)" // <-- NUEVO
-                            value={apellido}
-                            onChange={(e) => setApellido(e.target.value)}
-                            fullWidth
-                            size="small"
-                            required
-                            error={formSubmitted && !!errors.apellido}
-                            helperText={formSubmitted && errors.apellido}
-                          />
-                        </Box>
-
-                        {/* Campo Correo */}
-                        <Box className="my-3">
-                          <TextField
-                            label="Correo electrónico"
-                            value={correo}
-                            onChange={(e) => setCorreo(e.target.value)}
-                            fullWidth
-                            size="small"
-                            required
-                            error={formSubmitted && !!errors.correo}
-                            helperText={formSubmitted && errors.correo}
-                          />
-                        </Box>
-
-                        {/* Campo Cédula */}
-                        <Box className="my-3">
-                          <TextField
-                            label="Cédula Profesional" // <-- NUEVO
-                            value={cedula}
-                            onChange={(e) => setCedula(e.target.value)}
-                            fullWidth
-                            size="small"
-                            required
-                            error={formSubmitted && !!errors.cedula}
-                            helperText={formSubmitted && errors.cedula}
-                          />
-                        </Box>
-
-                        {/* Campo Especialidad */}
-                        <Box className="my-3">
-                          <TextField
-                            label="Especialidad" // <-- NUEVO
-                            value={especialidad}
-                            onChange={(e) => setEspecialidad(e.target.value)}
-                            fullWidth
-                            size="small"
-                            required
-                            error={formSubmitted && !!errors.especialidad}
-                            helperText={formSubmitted && errors.especialidad}
-                          />
-                        </Box>
-
-                        {/* Campo Contraseña */}
-                        <Box className="my-3">
-                          <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña}>
-                            <InputLabel>Contraseña</InputLabel>
-                            <OutlinedInput
-                              type={showPassword ? 'text' : 'password'}
-                              value={contraseña}
-                              onChange={(e) => setContraseña(e.target.value)}
-                              endAdornment={
-                                <InputAdornment position="end">
-                                  <IconButton onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                  </IconButton>
-                                </InputAdornment>
-                              }
-                              label="Contraseña"
-                              required
-                            />
-                            <FormHelperText>{formSubmitted && errors.contraseña}</FormHelperText>
-                          </FormControl>
-                        </Box>
-
-                        {/* Campo Confirmar Contraseña */}
-                        <Box className="my-3">
-                          <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña2}>
-                            <InputLabel>Confirmar contraseña</InputLabel>
-                            <OutlinedInput
-                              type={showPassword2 ? 'text' : 'password'}
-                              value={contraseña2}
-                              onChange={(e) => setContraseña2(e.target.value)}
-                              endAdornment={
-                                <InputAdornment position="end">
-                                  <IconButton onClick={handleClickShowPassword2} onMouseDown={handleMouseDownPassword} edge="end">
-                                    {showPassword2 ? <VisibilityOff /> : <Visibility />}
-                                  </IconButton>
-                                </InputAdornment>
-                              }
-                              label="Confirmar contraseña"
-                              required
-                            />
-                             <FormHelperText>{formSubmitted && errors.contraseña2}</FormHelperText>
-                          </FormControl>
-                        </Box>
-
-                         {/* Mostrar errores de la API */}
-                         {apiError && (
-                          <Typography color="error" variant="body2" sx={{ textAlign: 'center', mb: 2 }}>
-                            {apiError}
-                          </Typography>
-                        )}
-
-                        {/* Botón de registro */}
-                        <Box className="my-4">
-                          <Button fullWidth variant="contained" type="submit">
-                            Registrarse
-                          </Button>
-                        </Box>
-
-                        {/* Opciones de login */}
-                        <Box className="my-4">
-                          <Typography variant="body2" className="text-center">O regístrate con</Typography>
-                          <Box className="d-flex justify-content-center gap-3">
-                            <IconButton aria-label="google" color='google'>
-                              <GoogleIcon />
-                            </IconButton>
-                            <IconButton aria-label="facebook" color='facebook'>
-                              <FacebookRoundedIcon />
-                            </IconButton>
+                      {/* CORREO (Con reglas ocultas) */}
+                      <Box className="my-3">
+                        <TextField 
+                          label="Correo electrónico *" fullWidth size="small"
+                          value={correo} 
+                          onChange={handleEmailChange}
+                          onFocus={() => setShowEmailRules(true)} // Mostrar al enfocar
+                          onBlur={() => setShowEmailRules(false)} // Ocultar al salir (opcional, o dejar fijo si hay error)
+                          error={formSubmitted && !!errors.correo}
+                        />
+                        {/* Lista de reglas correo (Colapsable) */}
+                        <Collapse in={showEmailRules || (formSubmitted && !!errors.correo)}> 
+                          <Box sx={{ mt: 1, p: 1, bgcolor: '#f9f9f9', borderRadius: 1, border: '1px solid #eee' }}>
+                            <List dense disablePadding>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={emailRules.sinEspacios} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: emailRules.sinEspacios ? 'success.main' : 'text.secondary' }} primary="Sin espacios" />
+                              </ListItem>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={emailRules.arroba} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: emailRules.arroba ? 'success.main' : 'text.secondary' }} primary="Contiene @" />
+                              </ListItem>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={emailRules.dominio} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: emailRules.dominio ? 'success.main' : 'text.secondary' }} primary="Dominio válido (.com, .net, etc)" />
+                              </ListItem>
+                            </List>
                           </Box>
-                        </Box>
+                        </Collapse>
+                      </Box>
 
-                        {/* Enlaces a los Términos de Servicio y Política de Privacidad */}
-                        <div className="mt-4 text-center">
-                          <small>
-                            Al registrarte, aceptas nuestros
-                            <Link href="/terminos-condiciones" underline="hover" sx={{ mx: 0.5 }}>Términos de Servicio</Link> y
-                            <Link href="/politica-privacidad" underline="hover" sx={{ ml: 0.5 }}>Política de Privacidad</Link>.
-                          </small>
-                        </div>
-                      </form>
-                    </Box>
+                      {/* CÉDULA Y ESPECIALIDAD */}
+                      <Box className="my-3">
+                        <TextField 
+                          label="Cédula Profesional *" fullWidth size="small"
+                          placeholder="Solo números"
+                          value={cedula} 
+                          onChange={handleCedulaChange}
+                          error={formSubmitted && !!errors.cedula}
+                          helperText={formSubmitted && errors.cedula ? errors.cedula : ""}
+                          inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', maxLength: 10 }}
+                        />
+                      </Box>
+                      <Box className="my-3">
+                        <TextField 
+                          label="Especialidad *" fullWidth size="small" 
+                          value={especialidad} onChange={(e) => setEspecialidad(e.target.value)}
+                          error={formSubmitted && !!errors.especialidad}
+                        />
+                      </Box>
+
+                      {/* CONTRASEÑA (Con reglas ocultas) */}
+                      <Box className="my-3">
+                        <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña}>
+                          <InputLabel>Contraseña</InputLabel>
+                          <OutlinedInput
+                            type={showPassword ? 'text' : 'password'}
+                            value={contraseña}
+                            onChange={handlePasswordChange}
+                            onFocus={() => setShowPwdRules(true)} // Mostrar al enfocar
+                            onBlur={() => setShowPwdRules(false)} // Ocultar al salir
+                            endAdornment={
+                              <InputAdornment position="end">
+                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            }
+                            label="Contraseña"
+                          />
+                        </FormControl>
+                        
+                        {/* Lista de reglas contraseña (Colapsable) */}
+                        <Collapse in={showPwdRules || (formSubmitted && !!errors.contraseña)}>
+                          <Box sx={{ mt: 1, p: 1, bgcolor: '#f9f9f9', borderRadius: 1, border: '1px solid #eee' }}>
+                            <List dense disablePadding>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={pwdRules.length} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: pwdRules.length ? 'success.main' : 'text.secondary' }} primary="Mínimo 10 caracteres" />
+                              </ListItem>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={pwdRules.upper} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: pwdRules.upper ? 'success.main' : 'text.secondary' }} primary="1 Mayúscula" />
+                              </ListItem>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={pwdRules.number} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: pwdRules.number ? 'success.main' : 'text.secondary' }} primary="1 Número" />
+                              </ListItem>
+                              <ListItem disablePadding sx={{ minHeight: 20 }}>
+                                <ListItemIcon sx={{ minWidth: 20 }}><RuleIcon met={pwdRules.special} /></ListItemIcon>
+                                <ListItemText primaryTypographyProps={{ variant: 'caption', color: pwdRules.special ? 'success.main' : 'text.secondary' }} primary="1 Carácter especial (@$!%*?&)" />
+                              </ListItem>
+                            </List>
+                          </Box>
+                        </Collapse>
+                      </Box>
+
+                      <Box className="my-3">
+                        <FormControl fullWidth size="small" error={formSubmitted && !!errors.contraseña2}>
+                          <InputLabel>Confirmar contraseña</InputLabel>
+                          <OutlinedInput
+                            type={showPassword2 ? 'text' : 'password'}
+                            value={contraseña2}
+                            onChange={(e) => setContraseña2(e.target.value)}
+                            endAdornment={
+                              <InputAdornment position="end">
+                                <IconButton onClick={() => setShowPassword2(!showPassword2)} edge="end">
+                                  {showPassword2 ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            }
+                            label="Confirmar contraseña"
+                          />
+                          {formSubmitted && errors.contraseña2 && <FormHelperText>{errors.contraseña2}</FormHelperText>}
+                        </FormControl>
+                      </Box>
+
+                      {apiError && (
+                        <Typography color="error" variant="body2" align="center" sx={{ mb: 2 }}>
+                          {apiError}
+                        </Typography>
+                      )}
+
+                      <Button fullWidth variant="contained" type="submit" size="large" sx={{ fontWeight: 'bold', py: 1.2 }}>
+                        REGISTRARSE
+                      </Button>
+
+                      <div className="mt-3 text-center">
+                        <Typography variant="body2">
+                          ¿Ya tienes una cuenta? <Link href="/login" underline="hover" fontWeight="bold">Iniciar sesión</Link>
+                        </Typography>
+                      </div>
+                    </form>
                   </Box>
                 </Box>
               </Grid>
