@@ -9,13 +9,16 @@ from .views import (
     PasswordResetConfirmView,
     PacienteViewSet,
     AdminMedicoViewSet,
-    AdminPacienteViewSet
+    AdminPacienteViewSet,
+    CitaViewSet
 )
 
 router = DefaultRouter()
 router.register(r'pacientes', PacienteViewSet, basename='paciente')
 router.register(r'admin/medicos', AdminMedicoViewSet, basename='admin-medicos')
 router.register(r'admin/pacientes', AdminPacienteViewSet, basename='admin-pacientes')
+router.register(r'citas', CitaViewSet, basename='generar-cita' )
+
 
 urlpatterns = [
     path('register/', MedicoCreateView.as_view(), name='register_medico'),

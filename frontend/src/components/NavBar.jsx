@@ -13,7 +13,6 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-
   const handleLoginClick = () => navigate('/login');
   const handleRegisterClick = () => navigate('/register');
   const handleLogoutClick = () => {
@@ -59,7 +58,7 @@ function Navbar({ showingresa, showRegistrate, transparentNavbar, lightLink, sta
                   display: { xs: 'none', sm: 'block' } 
                 }}
               >
-                Sistema de Apoyo
+                Mapeo Rosa
               </Typography>
             )}
           </Link>

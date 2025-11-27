@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import Medico, Paciente, Administrador # Asegúrate de importar todos los modelos
+from .models import Medico, Paciente, Administrador, Cita, AnalisisImagen
 
 # ============================================================
 # 🔹 SERIALIZER: MÉDICO (SOLO PARA REGISTRO - CREATE)
@@ -40,10 +40,32 @@ class MedicoSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**user_data)
         
         # 2. Creamos el Medico y lo conectamos al User
-        # validated_data ya no tiene 'password', pero sí los otros campos
         medico = Medico.objects.create(user=user, **validated_data)
         
         return medico
+
+# ============================================================
+# 🔹 SERIALIZER: CITA (CORREGIDO: YA NO ESTÁ DENTRO DE MEDICO)
+# ============================================================
+class CitaSerializer(serializers.ModelSerializer):
+    
+    paciente = serializers.PrimaryKeyRelatedField(
+        queryset=Paciente.objects.all(),
+        required=True
+    )
+    
+    class Meta:
+        model = Cita
+        fields = ['id', 'paciente', 'fecha_hora', 'motivo', 'creada_en']
+        read_only_fields = ['creada_en']
+
+# ============================================================
+# 🔹 SERIALIZER: ANÁLISIS DE IMAGEN
+# ============================================================
+class AnalisisImagenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnalisisImagen
+        fields = '__all__'
 
 # ============================================================
 # 🔹 SERIALIZER: PERFIL DE MÉDICO (SOLO LECTURA - READ)

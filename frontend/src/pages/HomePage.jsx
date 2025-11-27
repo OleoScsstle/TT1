@@ -44,7 +44,7 @@ function HomePage() {
             <Grid item xs={12} md={6}>
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                 <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 1, letterSpacing: 1 }}>
-                  SISTEMA DE APOYO AL DIAGNÓSTICO
+                  MAPEO ROSA
                 </Typography>
                 
                 <Typography variant="h2" sx={{ fontWeight: '800', mb: 3, color: '#2c3e50', lineHeight: 1.2 }}>

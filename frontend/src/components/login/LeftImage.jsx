@@ -24,7 +24,7 @@ function LeftImage({ imageUrl, nombreFotografo }) {
 
         <Box className='mb-5'>
           <Typography variant='body1' className='text-light mt-5 pt-5'>
-            Fotografía de 
+            
           </Typography>
           <Typography variant='body1' className='fw-semibold text-light'>
             {}

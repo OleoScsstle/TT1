@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone 
+import datetime
 
 # --- Modelo Administrador ---
 class Administrador(models.Model):
@@ -12,7 +14,6 @@ class Administrador(models.Model):
         return f"Admin: {self.nombre} {self.apellido}"
 
 # --- Modelo Especialista (Medico) ---
-# Usamos 'Medico' para ser consistentes
 class Medico(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='medico_perfil')
     nombre = models.CharField(max_length=100)
@@ -21,7 +22,6 @@ class Medico(models.Model):
     direccion = models.CharField(max_length=255, blank=True, null=True)
     correo = models.EmailField(unique=True) 
     cedula = models.CharField(max_length=50, unique=True)
-
     especialidad = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField(null=True, blank=True)
     
@@ -37,7 +37,7 @@ class Medico(models.Model):
     )
     admin_validador = models.ForeignKey(
         Administrador,
-        on_delete=models.SET_NULL, # Si se borra el admin, este campo se pone a NULL
+        on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='especialistas_validados'
     )
@@ -47,8 +47,6 @@ class Medico(models.Model):
 
 # --- Modelo Paciente ---
 class Paciente(models.Model):
-    # Foreign Key al Especialista (Esp_Encargado en tu diagrama)
-    # ¡Esta es la clave para la separación de pacientes!
     esp_encargado = models.ForeignKey(Medico, on_delete=models.CASCADE, related_name="pacientes")
 
     nombre = models.CharField(max_length=100)
@@ -56,7 +54,8 @@ class Paciente(models.Model):
     telefono = models.CharField(max_length=20, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
     fecha_nac = models.DateField()
-    fecha_ingreso = models.DateField(auto_now_add=True, null=True, blank=True)
+    # Default hoy para evitar problemas al crear
+    fecha_ingreso = models.DateField(default=datetime.date.today, null=True, blank=True)
 
     SEXO_CHOICES = [
         ('M', 'Masculino'),
@@ -65,7 +64,6 @@ class Paciente(models.Model):
     ]
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     correo = models.EmailField(blank=True, null=True)
-
     imagen_perfil = models.ImageField(upload_to='perfiles_pacientes/', blank=True, null=True)
     historial_medico = models.TextField(blank=True, null=True)
     
@@ -82,17 +80,30 @@ class Paciente(models.Model):
     def __str__(self):
         return f"Paciente: {self.nombre} {self.apellido}"
 
-# --- Modelo Análisis ---
-class Analisis(models.Model):
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name="analisis")
-    especialista = models.ForeignKey(Medico, on_delete=models.CASCADE, related_name="analisis_realizados")
+# --- Modelo Cita ---
+class Cita(models.Model):
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='citas')
+    fecha_hora = models.DateTimeField() # Campo clave para fecha y hora
+    motivo = models.TextField(blank=True, null=True)
+    creada_en = models.DateTimeField(auto_now_add=True)
     
-    # Esto creará una carpeta 'backend/media/analisis_imagenes/'
+    def __str__(self):
+        return f"Cita con {self.paciente.nombre} el {self.fecha_hora.strftime('%Y-%m-%d %H:%M')}"
+
+# --- Modelo Análisis de Imagen (RENOMBRADO Y AJUSTADO) ---
+class AnalisisImagen(models.Model):
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name="analisis")
+    # Opcional: Relación con médico si la necesitas explícita, pero ya está en paciente
+    # especialista = models.ForeignKey(Medico, on_delete=models.CASCADE, related_name="analisis_realizados")
+    
+    titulo = models.CharField(max_length=255, blank=True, null=True) # Agregado para el frontend
     imagen = models.ImageField(upload_to='analisis_imagenes/', blank=True, null=True) 
-    fecha = models.DateField()
-    resultado = models.TextField()
+    
+    # Cambiado a DateTimeField con auto_now_add para consistencia
+    fecha_analisis = models.DateTimeField(auto_now_add=True) 
+    
+    resultado = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Análisis de {self.paciente.nombre} ({self.fecha})"
-
+        return f"Análisis de {self.paciente.nombre} ({self.fecha_analisis})"

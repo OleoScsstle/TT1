@@ -22,23 +22,24 @@ import RegistrarNuevoPaciente from '../pages/RegisterPacientPage';
 import TerminosCondiciones from '../pages/TerminosCondiciones';
 import PoliticasPrivacidad from '../pages/PoliticasPrivacidad';
 import ConfirmacionRegistro from '../pages/ConfirmacionRegistro';
+import GenerarCita from '../pages/GenerarCita';
+import AgendaPage from '../pages/AgendaPage';
 
 function AppRouter() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          
+        <Routes>          
           {/* =========================================
               RUTAS DE ACCESO LIBRE
              ========================================= */}
           <Route path="/" element={<HomePage />} />
           <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
           <Route path="/politica-privacidad" element={<PoliticasPrivacidad />} />
-          
           <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
           <Route path="/reset-password/:uidb64/:token" element={<IngresarNuevaContrasena />} />
           <Route path="/confirmacion-registro" element={<ConfirmacionRegistro />} />
+          <Route path="/proximas-citas" element={<AgendaPage />} />
 
           {/* =========================================
               RUTAS "PÚBLICAS" RESTRINGIDAS (Login/Registro)
@@ -61,6 +62,7 @@ function AppRouter() {
             <Route path="/perfil-paciente/:id" element={<PerfilPaciente />} />
             
             <Route path="/registrar-paciente" element={<RegistrarNuevoPaciente />} />
+            <Route path="/generar-cita" element={<GenerarCita />} />
             
             {/* Ruta de análisis */}
             <Route path="/comenzar-analisis" element={<NuevoAnalisis />} />

@@ -40,11 +40,17 @@ function Sidebar() {
     { id: 'crear', icon: <AddIcon />, label: "Agregar Paciente", path: '/registrar-paciente' },
     
     // Esta es la opción que tú habías agregado:
-    { id: 'nueva_cita', icon: <EventIcon />, label: "Registrar Nueva Cita", path: '/' }, 
+    { id: 'nueva_cita', icon: <EventIcon />, label: "Registrar Nueva Cita", path: '/generar-cita' }, 
     
     { id: 'analisis', icon: <BiotechIcon />, label: "Nuevo Análisis", path: '/comenzar-analisis' },
     
     // Ítem con SUB-MENÚ (Desplegable)
+
+    {id: 'Proximas citas',
+      icon: <EventIcon />,
+      label: 'Próximas Citas',
+      path: '/proximas-citas'
+    },
     { 
       id: 'informacion', 
       icon: <InfoIcon />, 
@@ -54,6 +60,8 @@ function Sidebar() {
         { id: 'terminos', label: "Términos y Cond.", path: '/terminos-condiciones', icon: <DescriptionIcon /> },
       ]
     },
+
+    
   ];
 
   const menuAdmin = [
