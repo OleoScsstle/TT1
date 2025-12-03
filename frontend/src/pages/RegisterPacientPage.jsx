@@ -16,6 +16,7 @@ import {
   Divider,
   CircularProgress,
   Alert,
+  Backdrop // <--- 1. IMPORTANTE: Importamos Backdrop
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -66,11 +67,12 @@ function RegisterPacientPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    
+    // Limpiamos mensajes previos
     setApiMessage({ type: '', msg: '' });
     setErrors({});
 
-    // --- VALIDACIÓN ESTRICTA (Todo requerido menos foto) ---
+    // --- VALIDACIÓN ESTRICTA ---
     let localErrors = {};
     
     if (!nombre.trim()) localErrors.nombre = 'El nombre es requerido.';
@@ -78,7 +80,6 @@ function RegisterPacientPage() {
     if (!fechaNac) localErrors.fechaNac = 'La fecha de nacimiento es requerida.';
     if (!sexo) localErrors.sexo = 'El sexo es requerido.';
     
-    // Nuevos campos obligatorios
     if (!correo.trim()) {
       localErrors.correo = 'El correo es requerido.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
@@ -93,15 +94,16 @@ function RegisterPacientPage() {
 
     if (!direccion.trim()) localErrors.direccion = 'La dirección es requerida.';
 
-    // Si hay errores, detenemos el envío
+    // Si hay errores, detenemos el envío y NO activamos el loading
     if (Object.keys(localErrors).length > 0) {
       setErrors(localErrors);
-      setLoading(false);
-      // Hacemos scroll arriba para que vea los errores
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     
+    // 2. Si todo es válido, ACTIVAMOS EL LOADING
+    setLoading(true);
+
     const formData = new FormData();
     formData.append('nombre', nombre);
     formData.append('apellido', apellido);
@@ -124,20 +126,27 @@ function RegisterPacientPage() {
       });
 
       console.log('Paciente creado:', response.data);
-      setApiMessage({ type: 'success', msg: 'Paciente registrado con éxito. Serás redirigido.' });
+      
+      // Éxito: Desactivamos loading para mostrar mensaje
       setLoading(false);
+      setApiMessage({ type: 'success', msg: 'Paciente registrado con éxito. Serás redirigido.' });
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       setTimeout(() => {
-        navigate('/main-page'); // Redirige al Dashboard
+        navigate('/main-page'); 
       }, 2000);
 
     } catch (error) {
       console.error('Error al registrar paciente:', error.response?.data);
+      
+      // Error: Desactivamos loading para que el usuario pueda corregir
+      setLoading(false);
       setApiMessage({ type: 'error', msg: 'Error al registrar al paciente. Revisa los campos.' });
+      
       if (error.response && error.response.data) {
         setErrors(error.response.data);
       }
-      setLoading(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -151,9 +160,28 @@ function RegisterPacientPage() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Layout>
+        
+        {/* 3. COMPONENTE BACKDROP (Pantalla de Carga) 
+            Se muestra solo cuando 'loading' es true.
+            zIndex alto para cubrir todo (incluso el Navbar si el Layout lo permite).
+        */}
+        <Backdrop
+            sx={{ 
+                color: '#fff', 
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                flexDirection: 'column',
+                gap: 2
+            }}
+            open={loading}
+        >
+            <CircularProgress color="inherit" size={60} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Procesando registro...
+            </Typography>
+        </Backdrop>
+
         <Container maxWidth="lg" sx={{ my: 4 }}>
           
-          {/* Header de la Sección */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
             <Box sx={{ bgcolor: 'primary.main', p: 1, borderRadius: 2, display: 'flex' }}>
                 <PersonIcon sx={{ color: 'white', fontSize: 30 }} />
@@ -164,7 +192,7 @@ function RegisterPacientPage() {
           </Stack>
           
           <Paper
-            elevation={0} // Diseño más limpio (Flat) con borde sutil
+            elevation={0} 
             sx={{
               p: { xs: 3, md: 5 },
               borderRadius: 3,
@@ -172,7 +200,6 @@ function RegisterPacientPage() {
               border: '1px solid #e0e0e0'
             }}
           >
-            {/* Mensaje de API arriba */}
             {apiMessage.msg && (
               <Alert severity={apiMessage.type} sx={{ mb: 4 }}>{apiMessage.msg}</Alert>
             )}
@@ -185,7 +212,6 @@ function RegisterPacientPage() {
               
               <Grid container spacing={4}>
                 
-                {/* --- Columna Izquierda --- */}
                 <Grid item xs={12} md={6}>
                   <Stack spacing={3}>
                     <TextField
@@ -196,6 +222,8 @@ function RegisterPacientPage() {
                       onChange={(e) => setNombre(e.target.value)}
                       error={!!errors.nombre}
                       helperText={errors.nombre}
+                      // Deshabilitamos inputs mientras carga para evitar cambios
+                      disabled={loading}
                       InputProps={{
                         startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>),
                       }}
@@ -208,6 +236,7 @@ function RegisterPacientPage() {
                       onChange={(e) => setApellido(e.target.value)}
                       error={!!errors.apellido}
                       helperText={errors.apellido}
+                      disabled={loading}
                       InputProps={{
                         startAdornment: (<InputAdornment position="start"><PersonIcon color="action" /></InputAdornment>),
                       }}
@@ -216,6 +245,7 @@ function RegisterPacientPage() {
                       label="Fecha de Nacimiento *"
                       value={fechaNac}
                       onChange={(newValue) => setFechaNac(newValue)}
+                      disabled={loading}
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -228,7 +258,7 @@ function RegisterPacientPage() {
                         }
                       }}
                     />
-                     <FormControl fullWidth required error={!!errors.sexo}>
+                      <FormControl fullWidth required error={!!errors.sexo} disabled={loading}>
                       <InputLabel id="sexo-label">Sexo</InputLabel>
                       <Select
                         labelId="sexo-label"
@@ -246,10 +276,9 @@ function RegisterPacientPage() {
                   </Stack>
                 </Grid>
 
-                {/* --- Columna Derecha --- */}
                 <Grid item xs={12} md={6}>
-                   <Stack spacing={3}>
-                     <TextField
+                    <Stack spacing={3}>
+                      <TextField
                         fullWidth
                         required
                         label="Correo electrónico"
@@ -258,6 +287,7 @@ function RegisterPacientPage() {
                         onChange={(e) => setCorreo(e.target.value)}
                         error={!!errors.correo}
                         helperText={errors.correo}
+                        disabled={loading}
                         InputProps={{
                           startAdornment: (<InputAdornment position="start"><EmailIcon color="action" /></InputAdornment>),
                         }}
@@ -268,9 +298,10 @@ function RegisterPacientPage() {
                         label="Número telefónico"
                         placeholder="10 dígitos"
                         value={telefono}
-                        onChange={handleTelefonoChange} // Usamos el handler numérico
+                        onChange={handleTelefonoChange} 
                         error={!!errors.telefono}
                         helperText={errors.telefono}
+                        disabled={loading}
                         inputProps={{ maxLength: 10 }}
                         InputProps={{
                           startAdornment: (<InputAdornment position="start"><PhoneIcon color="action" /></InputAdornment>),
@@ -285,23 +316,23 @@ function RegisterPacientPage() {
                         onChange={(e) => setDireccion(e.target.value)}
                         error={!!errors.direccion}
                         helperText={errors.direccion}
+                        disabled={loading}
                         InputProps={{
                           startAdornment: (<InputAdornment position="start"><HomeIcon color="action" /></InputAdornment>),
                         }}
                       />
-                   </Stack>
+                    </Stack>
                 </Grid>
                 
                 <Grid item xs={12}>
-                   <Divider sx={{ my: 2 }} />
+                    <Divider sx={{ my: 2 }} />
                 </Grid>
 
-                {/* --- Área de Foto --- */}
                 <Grid item xs={12}>
-                   <Typography variant="h6" color="primary" sx={{ mb: 2, fontWeight: 'bold' }}>
-                     Fotografía (Opcional)
-                   </Typography>
-                   <Box
+                    <Typography variant="h6" color="primary" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      Fotografía (Opcional)
+                    </Typography>
+                    <Box
                       sx={{
                         border: '2px dashed',
                         borderColor: 'primary.light',
@@ -310,15 +341,16 @@ function RegisterPacientPage() {
                         textAlign: 'center',
                         bgcolor: '#fafafa',
                         transition: 'all 0.3s ease',
-                        cursor: 'pointer',
+                        cursor: loading ? 'default' : 'pointer', // Cursor cambia si carga
                         '&:hover': {
-                          bgcolor: '#f0f7ff',
-                          borderColor: 'primary.main',
+                          bgcolor: loading ? '#fafafa' : '#f0f7ff',
+                          borderColor: loading ? 'primary.light' : 'primary.main',
                         },
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
-                        alignItems: 'center' 
+                        alignItems: 'center',
+                        opacity: loading ? 0.5 : 1 // Opacidad visual si carga
                       }}
                     >
                       <CameraIcon sx={{ fontSize: 50, color: 'primary.main', mb: 1, opacity: 0.8 }} />
@@ -327,10 +359,11 @@ function RegisterPacientPage() {
                         variant="contained"
                         component="label"
                         disableElevation
+                        disabled={loading}
                         sx={{ mt: 1, borderRadius: 50, px: 4 }}
                       >
                         {imagenPerfil ? "Cambiar Imagen" : "Subir Foto de Perfil"}
-                        <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                        <input type="file" hidden accept="image/*" onChange={handleFileChange} disabled={loading} />
                       </Button>
                       
                       {imagenPerfil && (
@@ -349,6 +382,7 @@ function RegisterPacientPage() {
                     size="large"
                     onClick={() => navigate('/main-page')}
                     sx={{ mr: 2 }}
+                    disabled={loading} 
                   >
                     Cancelar
                   </Button>
@@ -357,11 +391,10 @@ function RegisterPacientPage() {
                     color="primary"
                     type="submit"
                     size="large"
-                    disabled={loading}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                    disabled={loading} 
                     sx={{ px: 5, py: 1.5, borderRadius: 2, fontWeight: 'bold', boxShadow: 2 }}
                   >
-                    {loading ? "Guardando..." : "Registrar Paciente"}
+                    Registrar Paciente
                   </Button>
                 </Grid>
 

@@ -73,7 +73,6 @@ function Sidebar() {
 
   const opcionesMenu = user?.is_staff ? menuAdmin : menuMedico;
   const tituloSistema = user?.is_staff ? 'Panel Admin' : 'Sistema Médico';
-  const subtitulo = user?.is_staff ? 'Administración' : 'Dashboard';
 
   return (
     <Paper 
@@ -90,14 +89,14 @@ function Sidebar() {
         minHeight: '100vh'
       }}
     >
-      {/* Header del Sidebar */}
+      
       <Box sx={{ p: 2, borderBottom: '1px solid #e1e5e9' }}>
         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
           {tituloSistema}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#7f8c8d', fontSize: '12px' }}>
-          {subtitulo}
-        </Typography>
+   
+        
+        
       </Box>
 
       {/* Buscador */}
