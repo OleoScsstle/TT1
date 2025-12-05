@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Container, Alert, CircularProgress, Grid, Paper, Box, Typography, Avatar, Divider, Stack, Chip
+  Container, Alert, CircularProgress, Grid, Paper, Box, Typography, Avatar, Divider, Stack, Chip, IconButton, Badge
 } from '@mui/material';
 import { 
   MedicalServices as MedicalServicesIcon, 
   Groups as GroupsIcon, 
-  Assignment as AssignmentIcon 
+  Assignment as AssignmentIcon,
+  PhotoCamera as PhotoCameraIcon // <--- 1. Importamos el icono de cámara
 } from '@mui/icons-material';
 import axios from 'axios';
 
-// Componentes
 import InformacionPersonal from '../components/perfil/InformacionPersonal';
 import Layout from '../components/Layout'; 
 import { useAuth } from '../context/AuthContext';
@@ -18,9 +18,13 @@ const Perfil = () => {
   const { user, isAuthenticated, token, isLoading } = useAuth();
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
-  
   const [pacientesCount, setPacientesCount] = useState(0);
 
+  // --- 2. Nuevos estados para la imagen ---
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+
+  // Efecto para cargar estadísticas (sin cambios)
   useEffect(() => {
     const fetchEstadisticas = async () => {
       if (token) {
@@ -36,6 +40,16 @@ const Perfil = () => {
     };
     fetchEstadisticas();
   }, [token]);
+
+  // --- 3. Función para manejar la selección de archivo ---
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArchivoSeleccionado(file);
+      // Crear una URL temporal para ver la foto antes de subirla
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   if (isLoading) {
     return (
@@ -62,56 +76,77 @@ const Perfil = () => {
   }
 
   const medico = user.medico_perfil || {}; 
-  
   const nombreCompleto = medico.nombre 
     ? `${medico.nombre} ${medico.apellido}` 
     : user.first_name ? `${user.first_name} ${user.last_name}` : user.username;
-    
   const inicial = nombreCompleto.charAt(0).toUpperCase();
   
-  // --- DATOS A PASAR AL FORMULARIO ---
+  // Datos para el formulario
   const correo = user.email || medico.correo || 'Sin correo';
   const cedula = medico.cedula || 'Sin especificar';
   const celular = medico.telefono || '';
-  const direccion = medico.direccion || ''; // <--- AGREGADO
+  const direccion = medico.direccion || '';
   const fechaNacimiento = medico.fecha_nacimiento || null;
   const especialidad = medico.especialidad || 'Médico Especialista';
 
+  // --- 4. Lógica de guardado modificada para usar FormData ---
   const handleActualizarMedico = async (datosActualizados) => {
     try {
       setMensaje('');
       setError('');
 
-      // Pequeños ajustes de formato antes de enviar
+      // Creamos un FormData en lugar de un objeto JSON simple
+      const formData = new FormData();
+
+      // Agregamos los campos de texto
+      if (datosActualizados.nombre) formData.append('nombre', datosActualizados.nombre);
+      if (datosActualizados.apellido) formData.append('apellido', datosActualizados.apellido);
+      if (datosActualizados.cedula) formData.append('cedula', datosActualizados.cedula);
+      if (datosActualizados.direccion) formData.append('direccion', datosActualizados.direccion);
+      
+      // Manejo de fechas y teléfono
       if (datosActualizados.fechaNacimiento) {
-          datosActualizados.fecha_nacimiento = datosActualizados.fechaNacimiento;
+          // Asegúrate de que venga en formato YYYY-MM-DD string, si es objeto Date, formatéalo
+          formData.append('fecha_nacimiento', datosActualizados.fechaNacimiento);
       }
       if (datosActualizados.celular) {
-          datosActualizados.telefono = datosActualizados.celular;
-          delete datosActualizados.celular;
+          formData.append('telefono', datosActualizados.celular);
       }
-      // La dirección ya va dentro de datosActualizados tal cual
+
+      // IMPORTANTE: Agregamos la imagen si el usuario seleccionó una nueva
+      if (archivoSeleccionado) {
+        formData.append('imagen_perfil', archivoSeleccionado);
+      }
 
       const response = await axios.patch(
         'http://localhost:8000/api/medico/update/', 
-        datosActualizados,
+        formData, // Enviamos formData
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data', // <--- CAMBIO CLAVE: multipart
           },
         }
       );
 
       if (response.status === 200) {
-        setMensaje('Datos actualizados correctamente.');
+        setMensaje('Datos e imagen actualizados correctamente.');
+        // Limpiamos la selección de archivo
+        setArchivoSeleccionado(null);
         setTimeout(() => setMensaje(''), 5000);
+        // Opcional: Recargar la página o actualizar el contexto del usuario para ver la foto nueva definitiva
+        // window.location.reload(); 
       }
     } catch (err) {
       console.error('Error update:', err);
       setError('No se pudieron actualizar los datos. Verifica tu conexión.');
     }
   };
+
+  // Determinar qué imagen mostrar (la nueva previsualizada o la que viene del backend)
+  const avatarSrc = previewUrl 
+    ? previewUrl 
+    : (medico.imagen_perfil ? `http://localhost:8000${medico.imagen_perfil}` : '');
 
   return (
     <Layout>
@@ -129,15 +164,38 @@ const Perfil = () => {
           <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ p: 3, borderRadius: 2, textAlign: 'center', height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <Avatar
-                  sx={{ 
-                    width: 120, height: 120, bgcolor: '#bdbdbd', fontSize: 50,
-                    border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-                  }}
-                  src={medico.imagen_perfil ? `http://localhost:8000${medico.imagen_perfil}` : ''}
+                
+                {/* --- 5. UI para subir la foto (Input oculto + Badge con botón) --- */}
+                <Badge
+                  overlap="circular"
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  badgeContent={
+                    <>
+                      <input
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="icon-button-file"
+                        type="file"
+                        onChange={handleFileChange}
+                      />
+                      <label htmlFor="icon-button-file">
+                        <IconButton color="primary" aria-label="upload picture" component="span" sx={{ bgcolor: 'white', '&:hover': { bgcolor: '#f5f5f5' }, boxShadow: 2 }}>
+                          <PhotoCameraIcon />
+                        </IconButton>
+                      </label>
+                    </>
+                  }
                 >
-                  {inicial}
-                </Avatar>
+                  <Avatar
+                    sx={{ 
+                      width: 120, height: 120, bgcolor: '#bdbdbd', fontSize: 50,
+                      border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                    }}
+                    src={avatarSrc}
+                  >
+                    {inicial}
+                  </Avatar>
+                </Badge>
               </Box>
 
               <Typography variant="h5" fontWeight="bold" gutterBottom>{nombreCompleto}</Typography>
@@ -166,7 +224,6 @@ const Perfil = () => {
           </Grid>
 
           <Grid item xs={12} md={8}>
-            {/* Aquí pasamos la prop 'direccion' */}
             <InformacionPersonal
               correoElectronico={correo}
               nombre={medico.nombre || ''}
@@ -174,7 +231,7 @@ const Perfil = () => {
               fechaNacimiento={fechaNacimiento}
               celular={celular}
               cedula={cedula}
-              direccion={direccion} // <--- NUEVO
+              direccion={direccion}
               onSave={handleActualizarMedico}
             />
 

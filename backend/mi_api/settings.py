@@ -158,8 +158,9 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True          
 
-EMAIL_HOST_USER = 'dominguez.paez.alejandro@gmail.com'
+EMAIL_HOST_USER = 'mapeorosa@gmail.com'
 
-EMAIL_HOST_PASSWORD = 'qohj eerg pbvu arlp' 
+EMAIL_HOST_PASSWORD = 'wsoy wuvy pwhp vuia' 
 
+#qohj eerg pbvu arlp <-- Correo de: dominguez.paez.alejandro@gmail.com
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -98,12 +98,15 @@ class MedicoUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medico
         fields = [
+            'id',
             'nombre', 
             'apellido', 
+            'cedula', 
+            'especialidad', 
             'telefono', 
             'direccion', 
-            'fecha_nacimiento', 
-            'especialidad'
+            'fecha_nacimiento',
+            'imagen_perfil'  # <--- ¡AGREGA ESTO AQUÍ!
         ]
         
         # Hacemos todos opcionales para que PATCH funcione

@@ -6,7 +6,9 @@ from rest_framework import serializers
 from rest_framework.decorators import action 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.models import User
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework.parsers import MultiPartParser, FormParser 
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
@@ -109,6 +111,7 @@ class MedicoProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = MedicoUpdateSerializer
     permission_classes = [IsAuthenticated]
 
+    parser_classes = [MultiPartParser, FormParser]
     def get_object(self):
         if hasattr(self.request.user, 'medico_perfil'):
             return self.request.user.medico_perfil
@@ -162,19 +165,79 @@ class PasswordResetRequestView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
+        
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"detail": "Si existe, se envió el correo."}, status=status.HTTP_200_OK)
+            return Response({"detail": "Si existe una cuenta asociada, se envió un enlace."}, status=status.HTTP_200_OK)
 
+        # Generar Tokens
         token = default_token_generator.make_token(user)
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Link de recuperación
         reset_url = f"http://localhost:3000/reset-password/{uidb64}/{token}"
         
-        # Aquí deberías configurar tu envío de correo real
-        # send_mail(...) 
+        # ==================================================================
+        # 🎨 DISEÑO DEL CORREO (VERSIÓN ROSA)
+        # ==================================================================
+        # Color usado: #e91e63 (Pink)
         
-        return Response({"detail": "Enlace enviado."}, status=status.HTTP_200_OK)
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fce4ec; margin: 0; padding: 0; }}
+                .container {{ max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.2); overflow: hidden; }}
+                .header {{ background-color: #e91e63; color: #ffffff; padding: 30px 20px; text-align: center; }}
+                .content {{ padding: 30px; text-align: center; color: #333333; line-height: 1.6; }}
+                .button {{ display: inline-block; padding: 14px 28px; background-color: #e91e63; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; font-size: 16px; box-shadow: 0 4px 6px rgba(233, 30, 99, 0.3); }}
+                .button:hover {{ background-color: #c2185b; }}
+                .footer {{ background-color: #f8bbd0; padding: 15px; text-align: center; font-size: 12px; color: #880e4f; }}
+                .link-text {{ margin-top: 30px; font-size: 11px; color: #888; word-break: break-all; border-top: 1px solid #eee; padding-top: 20px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h2 style="margin:0;">Restablecer Contraseña</h2>
+                </div>
+                <div class="content">
+                    <p>Hola, <strong>{user.username}</strong>.</p>
+                    <p>Hemos recibido una solicitud para cambiar tu contraseña. Si fuiste tú, haz clic en el botón de abajo:</p>
+                    
+                    <a href="{reset_url}" class="button" style="color: #ffffff;">Cambiar mi Contraseña</a>
+                    
+                    <div class="link-text">
+                        <p>¿El botón no funciona? Copia y pega el siguiente enlace en tu navegador:</p>
+                        <p>{reset_url}</p>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>&copy; 2025 Tu Plataforma Médica. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"Hola. Usa este enlace para resetear tu password: {reset_url}"
+
+        try:
+            send_mail(
+                subject='Restablecer tu contraseña',
+                message=text_content,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+                html_message=html_content
+            )
+        except Exception as e:
+            print(f"Error enviando correo: {e}")
+            return Response({"detail": "Error al enviar el correo."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({"detail": "Enlace enviado correctamente."}, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(generics.GenericAPIView):
     serializer_class = PasswordResetConfirmSerializer
