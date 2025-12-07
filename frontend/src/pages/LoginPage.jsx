@@ -5,8 +5,12 @@ import axios from 'axios';
 
 // Material UI
 import { ThemeProvider } from '@mui/material/styles';
-import { Container, Box, Typography, TextField, FormControl, InputLabel, OutlinedInput, InputAdornment, IconButton, Button, Link, FormHelperText } from '@mui/material';
-import Grid from '@mui/material/Grid2'; // Asegúrate de usar Grid2 si es la versión nueva, o Grid normal
+import { 
+  Container, Box, Typography, TextField, FormControl, InputLabel, 
+  OutlinedInput, InputAdornment, IconButton, Button, Link, FormHelperText,
+  Alert, Collapse // <--- Importamos Alert y Collapse para la notificación bonita
+} from '@mui/material';
+import Grid from '@mui/material/Grid2'; 
 
 // Iconos
 import { Visibility, VisibilityOff, Google as GoogleIcon, FacebookRounded as FacebookRoundedIcon, Close as CloseIcon } from '@mui/icons-material';
@@ -14,12 +18,12 @@ import { Visibility, VisibilityOff, Google as GoogleIcon, FacebookRounded as Fac
 // Componentes y Estilos
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
-import LeftImage from '../components/login/LeftImage'; // Asegúrate de que LeftImage acepte children o props
+import LeftImage from '../components/login/LeftImage'; 
 import ThemeMaterialUI from '../components/ThemeMaterialUI';
 import '../css/LoginPage.css';
 
 // Imagen
-import casaLeon from '../img/HomePage/ilustracion-mamografia.avif'; // Reutilizamos la imagen de tema médico
+import casaLeon from '../img/HomePage/ilustracion-mamografia.avif'; 
 
 function LoginPage() {
   const { login } = useAuth();
@@ -28,29 +32,39 @@ function LoginPage() {
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   
-  // Estados de error y carga
+  // Estados UI
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [errorLogin, setErrorLogin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // --- ESTADO PARA LA ALERTA INTELIGENTE ---
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    severity: 'error', // 'error' (rojo) | 'warning' (amarillo) | 'success' (verde)
+    message: ''
+  });
 
   const handleHomeClick = () => navigate('/');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
-    setErrorLogin('');
+    setAlertInfo({ ...alertInfo, show: false }); // Ocultar alerta previa
 
-    // 1. Validaciones básicas
-    if (!correo || !contraseña) {
-      return; 
-    }
+    // 1. Validaciones básicas del front
+    if (!correo || !contraseña) return; 
 
-    // Validación simple de formato de correo (solo para no enviar basura)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(correo)) {
-        setErrorLogin('Por favor, introduce un correo electrónico válido.');
+        setAlertInfo({ 
+            show: true, 
+            severity: 'warning', 
+            message: 'Por favor, introduce un correo electrónico válido.' 
+        });
         return;
     }
+
+    setLoading(true);
 
     try {
       const response = await axios.post('http://localhost:8000/api/token/', {
@@ -59,6 +73,8 @@ function LoginPage() {
       });
 
       console.log("Login exitoso");
+      
+      // Guardar sesión
       login(response.data.access, response.data.refresh);
 
       // Redirección basada en rol
@@ -70,7 +86,41 @@ function LoginPage() {
 
     } catch (error) {
       console.error("Error en el login:", error);
-      setErrorLogin('Correo o contraseña incorrectos. Por favor, inténtalo de nuevo.');
+      
+      let msg = "Ocurrió un error inesperado.";
+      let sev = "error";
+
+      // --- AQUÍ CAPTURAMOS LA RESPUESTA DEL BACKEND ---
+      if (error.response && error.response.status === 401) {
+          const detail = error.response.data.detail || "";
+
+          // CASO 1: CUENTA PENDIENTE (Amarillo)
+          if (detail.includes("proceso de validación") || detail.includes("pending")) {
+              msg = "   Tu cuenta está en revisión. Un administrador debe aprobar tu registro antes de que puedas ingresar.";
+              sev = "warning"; 
+          }
+          // CASO 2: CUENTA RECHAZADA (Rojo)
+          else if (detail.includes("rechazada") || detail.includes("rejected")) {
+              msg = "⛔ Tu solicitud de registro ha sido rechazada por el administrador.";
+              sev = "error";
+          }
+          // CASO 3: CREDENCIALES MALAS (Rojo)
+          else {
+              msg = "Correo o contraseña incorrectos. Verifica tus datos.";
+              sev = "error";
+          }
+      } else if (!error.response) {
+          msg = "No se pudo conectar con el servidor. Verifica tu internet.";
+      }
+
+      setAlertInfo({
+        show: true,
+        severity: sev,
+        message: msg
+      });
+      
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -104,6 +154,17 @@ function LoginPage() {
                       Ingresa tus datos para continuar
                     </Typography>
 
+                    {/* --- ALERTA BONITA (COLLAPSE) --- */}
+                    <Collapse in={alertInfo.show}>
+                        <Alert 
+                            severity={alertInfo.severity} 
+                            sx={{ mb: 3, borderRadius: 2, boxShadow: 1 }}
+                            onClose={() => setAlertInfo({...alertInfo, show: false})}
+                        >
+                            {alertInfo.message}
+                        </Alert>
+                    </Collapse>
+
                     <form onSubmit={handleLogin}>
                       {/* Correo */}
                       <Box className='my-4'>
@@ -117,6 +178,7 @@ function LoginPage() {
                           fullWidth
                           error={formSubmitted && !correo}
                           helperText={formSubmitted && !correo ? "El correo es requerido" : ""}
+                          disabled={loading}
                         />
                       </Box>
 
@@ -128,6 +190,7 @@ function LoginPage() {
                             type={showPassword ? 'text' : 'password'}
                             value={contraseña}
                             onChange={(e) => setContraseña(e.target.value)}
+                            disabled={loading}
                             endAdornment={
                               <InputAdornment position="end">
                                 <IconButton
@@ -145,23 +208,17 @@ function LoginPage() {
                           )}
                         </FormControl>
                       </Box>
-
-                      {/* Mensaje de Error General */}
-                      {errorLogin && (
-                        <Typography color="error" variant="body2" sx={{ textAlign: 'center', mb: 2, fontWeight: 'bold' }}>
-                          {errorLogin}
-                        </Typography>
-                      )}
                       
-                      {/* Botón Login (Full Width para consistencia) */}
+                      {/* Botón Login */}
                       <Button 
                         variant="contained" 
                         type="submit" 
                         fullWidth 
                         size="large"
+                        disabled={loading}
                         sx={{ py: 1.2, mb: 2, fontWeight: 'bold' }}
                       >
-                        Iniciar sesión
+                        {loading ? "Verificando..." : "Iniciar sesión"}
                       </Button>
 
                       <Box sx={{ textAlign: 'center', mb: 3 }}>

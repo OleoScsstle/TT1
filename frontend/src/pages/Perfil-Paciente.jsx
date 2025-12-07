@@ -218,6 +218,14 @@ function PatientProfilePage() {
 
   const handleCloseAlert = () => setMensajeExito('');
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    // Si la URL ya viene completa del backend (http://...), la dejamos así.
+    if (url.startsWith('http')) return url;
+    // Si viene relativa (/media/...), le pegamos el dominio.
+    return `http://localhost:8000${url}`;
+  };
+
   if (loading) return <Layout><Box sx={{display:'flex', height:'80vh', justifyContent:'center', alignItems:'center'}}><CircularProgress/></Box></Layout>;
   if (error) return <Layout><Container sx={{mt:4}}><Alert severity="error">{error}</Alert></Container></Layout>;
   if (!paciente) return null;
@@ -252,7 +260,10 @@ function PatientProfilePage() {
                     ) : null }
                 >
                   <Avatar
-                    src={imagePreview || (paciente.imagen_perfil ? `http://localhost:8000${paciente.imagen_perfil}` : '')}
+                    src={
+    imagePreview || 
+    (paciente.imagen_perfil ? `${getImageUrl(paciente.imagen_perfil)}?v=${Date.now()}` : '')
+}
                     sx={{ width: 120, height: 120, bgcolor: '#e0e0e0', border: '4px solid white', boxShadow: 2, fontSize: 50 }}
                   >
                     {!paciente.imagen_perfil && !imagePreview && <PersonIcon fontSize="inherit" />}
