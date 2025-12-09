@@ -12,6 +12,13 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import HttpResponse
+from django.template.loader import get_template
+import requests  # <--- IMPORTANTE: Para conectar con FastAPI
+from datetime import date
+from xhtml2pdf import pisa
+import os
+import re
 
 # Importación de Modelos
 from .models import Medico, Administrador, Paciente, Cita, AnalisisImagen
@@ -25,8 +32,8 @@ from .serializers import (
     PacienteSerializer,
     MedicoUpdateSerializer,
     MedicoProfileSerializer,
-    CitaSerializer,          # <--- Asegúrate que esto está aquí
-    AnalisisImagenSerializer # <--- Y esto también
+    CitaSerializer,
+    AnalisisImagenSerializer
 )
 from .serializers_jwt import MyTokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -54,7 +61,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         else:
             raise serializers.ValidationError("No tienes un perfil de médico.")
 
-# 2. CITAS (¡ESTA ES LA QUE FALTABA!)
+# 2. CITAS
 class CitaViewSet(viewsets.ModelViewSet):
     serializer_class = CitaSerializer
     permission_classes = [IsAuthenticated]
@@ -76,7 +83,7 @@ class CitaViewSet(viewsets.ModelViewSet):
             
         serializer.save(paciente=paciente)
 
-# 3. ANÁLISIS DE IMAGEN
+# 3. ANÁLISIS DE IMAGEN (CON INTEGRACIÓN DE IA)
 class AnalisisImagenViewSet(viewsets.ModelViewSet):
     serializer_class = AnalisisImagenSerializer
     permission_classes = [IsAuthenticated]
@@ -91,6 +98,64 @@ class AnalisisImagenViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(paciente_id=paciente_id)
             return queryset
         return AnalisisImagen.objects.none()
+
+    def perform_create(self, serializer):
+        # 1. Obtener al médico logueado
+        if not hasattr(self.request.user, 'medico_perfil'):
+             raise serializers.ValidationError("Solo los médicos pueden realizar análisis.")
+        
+        medico = self.request.user.medico_perfil
+        
+        # 2. Obtener la imagen
+        imagen_obj = self.request.FILES.get('imagen')
+        if not imagen_obj:
+            raise serializers.ValidationError("No se proporcionó ninguna imagen.")
+
+        # ============================================================
+        # 🔹 CONEXIÓN CON TU MICROSERVICIO DE IA (FastAPI)
+        # ============================================================
+        resultado_ia = "Error en análisis"
+        descripcion_ia = "No se pudo conectar con el motor de IA."
+        
+        try:
+            # Preparamos el archivo para enviarlo a FastAPI
+            files = {'file': (imagen_obj.name, imagen_obj.read(), imagen_obj.content_type)}
+            
+            # Petición POST a tu API corriendo en el puerto 8001
+            response = requests.post('http://localhost:8001/predict', files=files)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                diag = data.get('diagnostico', 'Indeterminado')
+                prob = data.get('probabilidad_malignidad', 0)
+                conf = data.get('confianza', '0%')
+                modelo = data.get('modelo', 'IA')
+                
+                # Formateamos el resultado para guardarlo en la BD
+                resultado_ia = f"{diag.upper()} ({conf})"
+                descripcion_ia = (
+                    f"Diagnóstico sugerido: {diag}.\n"
+                    f"Probabilidad de malignidad: {prob}\n"
+                    f"Modelo utilizado: {modelo}"
+                )
+            else:
+                descripcion_ia = f"Error del modelo IA: {response.text}"
+
+        except Exception as e:
+            print(f"Error de conexión con IA: {e}")
+            descripcion_ia = "El servicio de IA no está disponible en este momento."
+
+        # Restauramos el puntero del archivo para que Django pueda guardarlo
+        imagen_obj.seek(0)
+
+        # 3. Guardar en la BD
+        serializer.save(
+            #especialista=medico,
+            #fecha=date.today(),
+            resultado=resultado_ia,
+            descripcion=descripcion_ia
+        )
 
 # =========================================================================
 # 🔹 VISTAS DE USUARIO Y PERFIL
@@ -147,11 +212,11 @@ class AdminMedicoViewSet(viewsets.ModelViewSet):
             return Response({'detail': f'Médico {nuevo_estado.lower()}.'})
         return Response({'detail': 'Estado inválido.'}, status=status.HTTP_400_BAD_REQUEST)
 
-class AdminPacienteViewSet(viewsets.ModelViewSet):
+class AdminPacienteViewSet(viewsets.ModelViewSet): # <--- CAMBIO: ModelViewSet permite borrar
     queryset = Paciente.objects.all().order_by('-id')
     serializer_class = PacienteSerializer
     permission_classes = [IsAdminUser]
-    http_method_names = ['get', 'delete', 'head', 'options']
+    # Quitamos la restricción de http_method_names para permitir DELETE
 
 # =========================================================================
 # 🔹 VISTAS DE AUTENTICACIÓN (Password Reset & Token)
@@ -178,11 +243,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
         # Link de recuperación
         reset_url = f"http://localhost:3000/reset-password/{uidb64}/{token}"
         
-        # ==================================================================
-        # 🎨 DISEÑO DEL CORREO (VERSIÓN ROSA)
-        # ==================================================================
-        # Color usado: #e91e63 (Pink)
-        
+        # Diseño de correo rosa
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -206,9 +267,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
                 <div class="content">
                     <p>Hola, <strong>{user.username}</strong>.</p>
                     <p>Hemos recibido una solicitud para cambiar tu contraseña. Si fuiste tú, haz clic en el botón de abajo:</p>
-                    
                     <a href="{reset_url}" class="button" style="color: #ffffff;">Cambiar mi Contraseña</a>
-                    
                     <div class="link-text">
                         <p>¿El botón no funciona? Copia y pega el siguiente enlace en tu navegador:</p>
                         <p>{reset_url}</p>
@@ -246,8 +305,73 @@ class PasswordResetConfirmView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # Lógica de confirmación (igual que antes)
         return Response({"detail": "Contraseña restablecida."}, status=status.HTTP_200_OK)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+class GenerarPDFView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            analisis = AnalisisImagen.objects.get(pk=pk)
+        except AnalisisImagen.DoesNotExist:
+            return Response({"error": "Análisis no encontrado"}, status=404)
+
+        # Preparar ruta de imagen
+        imagen_path = ""
+        nombre_archivo = "Desconocido"
+        if analisis.imagen:
+            imagen_path = os.path.join(settings.MEDIA_ROOT, str(analisis.imagen))
+            nombre_archivo = os.path.basename(str(analisis.imagen)) # Extrae solo "foto.jpg"
+
+        # Calcular edad
+        edad = "---"
+        if analisis.paciente.fecha_nac:
+            today = date.today()
+            born = analisis.paciente.fecha_nac
+            edad = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+        # --- INTELIGENCIA PARA EXTRAER DATOS DEL TEXTO ---
+        # Como guardamos todo en un string en 'descripcion', vamos a intentar leerlo
+        # Formato esperado: "Diagnóstico: X\nConfianza: 98%\nScore: 0.98..."
+        descripcion = analisis.descripcion or ""
+        
+        # Valores por defecto
+        probabilidad = "N/A"
+        confianza = "N/A"
+
+        # Buscamos "Score: 0.xxxx" o "Probabilidad: 0.xxxx"
+        match_prob = re.search(r'(Score|Probabilidad).*?(\d+\.\d+)', descripcion)
+        if match_prob:
+            probabilidad = match_prob.group(2)
+
+        # Buscamos "Confianza: 98%"
+        match_conf = re.search(r'Confianza.*?(\d+\.?\d*%)', descripcion)
+        if match_conf:
+            confianza = match_conf.group(1)
+
+        context = {
+            'analisis': analisis,
+            'imagen_path': imagen_path,
+            'nombre_archivo': nombre_archivo,
+            'edad': edad,
+            'probabilidad': probabilidad,
+            'confianza': confianza,
+            'fecha_impresion': date.today().strftime("%d/%m/%Y")
+        }
+
+        # Renderizar
+        template_path = 'reporte_analisis.html'
+        template = get_template(template_path)
+        html = template.render(context)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Reporte_MapeoRosa_{pk}.pdf"'
+
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        if pisa_status.err:
+            return HttpResponse('Error generando PDF', status=500)
+        return response

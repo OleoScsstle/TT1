@@ -2,6 +2,7 @@
 backend/venv/
 backend/__pycache__/
 backend/db.sqlite3
+backend/modelo_resnet.keras
 
 # Ignorar dependencias de Node (Frontend)
 frontend/node_modules/

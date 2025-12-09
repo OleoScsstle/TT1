@@ -10,7 +10,9 @@ from .views import (
     PacienteViewSet,
     AdminMedicoViewSet,
     AdminPacienteViewSet,
-    CitaViewSet
+    AnalisisImagenViewSet,
+    CitaViewSet,
+    GenerarPDFView
 )
 
 router = DefaultRouter()
@@ -18,6 +20,7 @@ router.register(r'pacientes', PacienteViewSet, basename='paciente')
 router.register(r'admin/medicos', AdminMedicoViewSet, basename='admin-medicos')
 router.register(r'admin/pacientes', AdminPacienteViewSet, basename='admin-pacientes')
 router.register(r'citas', CitaViewSet, basename='generar-cita' )
+router.register(r'analisis', AnalisisImagenViewSet, basename='analisis')
 
 
 urlpatterns = [
@@ -27,5 +30,6 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('medico/update/', MedicoProfileUpdateView.as_view(), name='medico_update'),
+    path('analisis/<int:pk>/pdf/', GenerarPDFView.as_view(), name='generar_pdf'),
     path('', include(router.urls)),
 ]

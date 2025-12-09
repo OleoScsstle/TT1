@@ -17,6 +17,7 @@ import {
   Divider
 } from '@mui/material';
 import {
+  PictureAsPdf as PdfIcon,
   CloudUpload as CloudUploadIcon,
   Description as DescriptionIcon,
   Biotech as BiotechIcon,
@@ -46,7 +47,6 @@ function NuevoAnalisis() {
   const [resultadoExitoso, setResultadoExitoso] = useState(null);
 
   // 1. CARGAR LISTA DE PACIENTES AL INICIAR
-  // (Necesario para saber a quién asignar el análisis)
   useEffect(() => {
     const fetchPacientes = async () => {
       try {
@@ -76,7 +76,27 @@ function NuevoAnalisis() {
     }
   };
 
-  // 3. ENVIAR AL BACKEND (Lógica Real)
+  // 3. FUNCIÓN PARA DESCARGAR PDF (SEGURA)
+  const handleDownloadPDF = async (analisisId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/analisis/${analisisId}/pdf/`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          responseType: 'blob' // Importante para archivos binarios
+        }
+      );
+      // Crear URL temporal y abrirla
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, '_blank');
+    } catch (err) {
+      console.error("Error descargando PDF:", err);
+      alert("No se pudo descargar el reporte. Verifica tu sesión.");
+    }
+  };
+
+  // 4. ENVIAR AL BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -93,11 +113,12 @@ function NuevoAnalisis() {
     setError('');
 
     const formData = new FormData();
-    formData.append('paciente', pacienteSeleccionado); // <--- DATOS CLAVE
-    formData.append('imagen', selectedFile);           // <--- DATOS CLAVE
+    formData.append('paciente', pacienteSeleccionado);
+    formData.append('imagen', selectedFile);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/analisis/nuevo/', formData, {
+      // Nota: URL corregida con '/' al final
+      const response = await axios.post('http://localhost:8000/api/analisis/', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -105,7 +126,7 @@ function NuevoAnalisis() {
       });
 
       console.log("Respuesta del servidor:", response.data);
-      setResultadoExitoso(response.data); // Guardamos el resultado que viene de Django
+      setResultadoExitoso(response.data); 
 
     } catch (err) {
       console.error("Error en el análisis:", err);
@@ -115,7 +136,7 @@ function NuevoAnalisis() {
     }
   };
 
-  // --- PANTALLA DE RESULTADO (Cuando termina el análisis) ---
+  // --- PANTALLA DE RESULTADO ---
   if (resultadoExitoso) {
     return (
       <Layout>
@@ -138,11 +159,11 @@ function NuevoAnalisis() {
                   {resultadoExitoso.resultado}
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="textSecondary" style={{ whiteSpace: 'pre-line' }}>
                   {resultadoExitoso.descripcion}
                 </Typography>
                 <Typography variant="caption" display="block" sx={{ mt: 2, color: '#999' }}>
-                  Fecha: {resultadoExitoso.fecha}
+                  Fecha: {resultadoExitoso.fecha_analisis ? new Date(resultadoExitoso.fecha_analisis).toLocaleDateString() : 'Hoy'}
                 </Typography>
               </CardContent>
             </Card>
@@ -151,6 +172,17 @@ function NuevoAnalisis() {
               <Button variant="outlined" onClick={() => navigate('/main-page')}>
                 Ir al Dashboard
               </Button>
+
+              {/* BOTÓN PDF CORREGIDO */}
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                startIcon={<PdfIcon />}
+                onClick={() => handleDownloadPDF(resultadoExitoso.id)}
+              >
+                Descargar Reporte
+              </Button>
+
               <Button variant="contained" onClick={() => {
                 setResultadoExitoso(null);
                 setSelectedFile(null);
@@ -186,7 +218,7 @@ function NuevoAnalisis() {
           ) : (
             <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
               
-              {/* 1. Selector de Paciente (NUEVO) */}
+              {/* 1. Selector de Paciente */}
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#2c3e50' }}>
                 1. Seleccionar Paciente
               </Typography>

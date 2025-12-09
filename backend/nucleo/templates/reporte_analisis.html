@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: letter portrait;
+            margin: 2cm;
+        }
+        body { font-family: Helvetica, sans-serif; color: #333; }
+
+        /* Colores */
+        .pink-text { color: #E4007C; }
+        .bg-pink { background-color: #E4007C; color: white; }
+
+        /* Encabezado */
+        .header-table { width: 100%; margin-bottom: 20px; border: none; }
+        .header-table td { vertical-align: middle; text-align: center; }
+        .logo-img { width: 80px; height: 80px; object-fit: contain; } 
+        .system-title { font-size: 36px; font-weight: bold; font-family: 'Brush Script MT', cursive; }
+
+        /* Información */
+        .info-box { 
+            width: 100%; 
+            background-color: #fce4ec; 
+            border: 1px solid #E4007C;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        .info-table { width: 100%; }
+        .info-label { font-weight: bold; }
+
+        /* Imagen + Nombre de archivo */
+        .image-container { 
+            text-align: center; 
+            margin: 20px 0; 
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .mamografia { 
+            height: 350px; 
+            width: auto; 
+            max-width: 100%; 
+            object-fit: contain; 
+        }
+        .image-caption {
+            font-size: 10px;
+            color: #555;
+            margin-top: 5px;
+            word-wrap: break-word;
+        }
+
+        /* Tabla de Resultados */
+        .results-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            font-size: 11px; 
+            table-layout: fixed; 
+        }
+        .results-table th { 
+            background-color: #f8bbd0;
+            border: 1px solid #E4007C; 
+            padding: 8px; 
+            font-weight: bold;
+            text-align: center;
+        }
+        .results-table td { 
+            border: 1px solid #E4007C; 
+            padding: 8px; 
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Footer Legal */
+        .footer-legal {
+            margin-top: 40px;
+            font-size: 9px;
+            color: #777;
+            text-align: justify;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td width="20%">
+                {% if logo_path %}
+                    <img src="{{ logo_path }}" class="logo-img" />
+                {% else %}
+                    <div style="width: 60px; height: 60px; background-color: #E4007C; border-radius: 50%; margin: auto;"></div>
+                {% endif %}
+            </td>
+            <td width="60%">
+                <div class="system-title pink-text">Mapeo Rosa</div>
+                <div style="font-size: 10px; letter-spacing: 2px;">SISTEMA DE APOYO AL DIAGNÓSTICO</div>
+            </td>
+            <td width="20%">
+                {% if logo_path %}
+                    <img src="{{ logo_path }}" class="logo-img" />
+                {% else %}
+                    <div style="width: 60px; height: 60px; background-color: #E4007C; border-radius: 50%; margin: auto;"></div>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="info-box">
+        <table class="info-table">
+            <tr>
+                <td width="50%">
+                    <span class="info-label">INFORMACIÓN PACIENTE</span><br>
+                    Nombre: {{ analisis.paciente.nombre }} {{ analisis.paciente.apellido }}<br>
+                    ID: {{ analisis.paciente.id }}<br>
+                    Edad: {{ edad }} años
+                </td>
+                <td width="50%">
+                    <span class="info-label">DOCTOR TRATANTE</span><br>
+                    Nombre: Dr(a). {{ analisis.paciente.esp_encargado.nombre }} {{ analisis.paciente.esp_encargado.apellido }}<br>
+                    Cedula: {{ analisis.paciente.esp_encargado.cedula }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="image-container">
+        {% if imagen_path %}
+            <img src="{{ imagen_path }}" class="mamografia" />
+            <div class="image-caption">Archivo: {{ nombre_archivo }}</div>
+        {% else %}
+            <p style="color:#999;">Imagen no disponible</p>
+        {% endif %}
+    </div>
+
+    <div style="background-color: #fce4ec; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #E4007C; border-bottom: none; font-size: 12px;">
+        RESULTADOS DEL ANÁLISIS
+    </div>
+    
+    <table class="results-table">
+        <col style="width: 25%"> 
+        <col style="width: 25%"> 
+        <col style="width: 25%"> 
+        <col style="width: 25%"> 
+        <thead>
+            <tr>
+                <th>Diagnóstico</th>
+                <th>Prob. Malignidad</th>
+                <th>Confianza</th>
+                <th>Modelo</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight: bold; color: {% if 'Maligno' in analisis.resultado %}#d32f2f{% else %}#388e3c{% endif %};">
+                    {{ analisis.resultado }}
+                </td>
+                <td>{{ probabilidad }}</td>
+                <td>{{ confianza }}</td>
+                <td>ResNet50</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer-legal">
+        Nota: Este reporte fue generado automáticamente por el sistema <strong>Mapeo Rosa</strong> el día {{ fecha_impresion }}. 
+        Los resultados presentados (Probabilidad, Confianza) son estimaciones matemáticas basadas en patrones visuales y 
+        <strong>NO sustituyen una biopsia ni el diagnóstico de ningún médico</strong>. Consulte siempre a su especialista.
+    </div>
+
+</body>
+</html>
